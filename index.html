@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="app.title">JWT Security Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+</head>
+<body>
+    <div class="custom-title-bar">
+        <div class="title-bar-content">
+            <div class="app-icon">
+                <img src="assets/logo.svg" alt="JWT Security Analyzer" class="app-logo">
+            </div>
+            <div class="app-title" data-i18n="app.title">JWT Security Analyzer</div>
+        </div>
+        <div class="window-controls">
+            <button class="window-control minimize-btn" id="minimize-btn" data-i18n-title="window.minimize">
+                <i class="fas fa-window-minimize"></i>
+            </button>
+            <button class="window-control maximize-btn" id="maximize-btn" data-i18n-title="window.maximize">
+                <i class="fas fa-window-maximize"></i>
+            </button>
+            <button class="window-control close-btn" id="close-btn" data-i18n-title="window.close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1><img src="assets/logo.svg" alt="JWT Security Analyzer" class="header-logo"> <span data-i18n="app.title">JWT Security Analyzer</span></h1>
+                    <p data-i18n="app.subtitle">JWT Token Analysis & Security Testing Suite</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-sm btn-outline" id="check-updates-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span data-i18n="updater.check_updates">Check for Updates</span>
+                    </button>
+                    <select id="language-selector" class="language-selector">
+                        <option value="en">English</option>
+                        <option value="de">Deutsch</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <nav class="sidebar">
+                <div class="sidebar-content">
+                    <div class="nav-section">
+                        <div class="nav-item active" data-tab="decoder">
+                            <i class="fas fa-unlock"></i>
+                            <span data-i18n="nav.decoder">JWT Decoder</span>
+                            <div class="nav-tooltip" data-i18n="nav.decoder.tooltip">Decode and analyze JWT tokens</div>
+                        </div>
+                        <div class="nav-item" data-tab="encoder">
+                            <i class="fas fa-lock"></i>
+                            <span data-i18n="nav.encoder">JWT Encoder</span>
+                            <div class="nav-tooltip" data-i18n="nav.encoder.tooltip">Create custom JWT tokens</div>
+                        </div>
+                        <div class="nav-item" data-tab="security">
+                            <i class="fas fa-bug"></i>
+                            <span data-i18n="nav.security">Security Analysis</span>
+                            <div class="nav-tooltip" data-i18n="nav.security.tooltip">Vulnerability detection and analysis</div>
+                        </div>
+                        <div class="nav-item" data-tab="attacks">
+                            <i class="fas fa-crosshairs"></i>
+                            <span data-i18n="nav.attacks">Attack Vectors</span>
+                            <div class="nav-tooltip" data-i18n="nav.attacks.tooltip">Generate attack payloads</div>
+                        </div>
+                        <div class="nav-item" data-tab="bruteforce">
+                            <i class="fas fa-hammer"></i>
+                            <span data-i18n="nav.bruteforce">Brute Force</span>
+                            <div class="nav-tooltip" data-i18n="nav.bruteforce.tooltip">Crack weak secrets</div>
+                        </div>
+                        <div class="nav-item" data-tab="keygen">
+                            <i class="fas fa-cogs"></i>
+                            <span data-i18n="nav.keygen">Key Generator</span>
+                            <div class="nav-tooltip" data-i18n="nav.keygen.tooltip">Generate RSA/HMAC keys</div>
+                        </div>
+                        <div class="nav-item" data-tab="validator">
+                            <i class="fas fa-check-circle"></i>
+                            <span data-i18n="nav.validator">Token Validator</span>
+                            <div class="nav-tooltip" data-i18n="nav.validator.tooltip">Verify token integrity</div>
+                        </div>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-section-title" data-i18n="nav.utilities">UTILITIES</div>
+                        <div class="nav-item" data-tab="http-tester">
+                            <i class="fas fa-globe"></i>
+                            <span data-i18n="nav.http_tester">HTTP Tester</span>
+                            <div class="nav-tooltip" data-i18n="nav.http_tester.tooltip">Test JWT tokens in requests</div>
+                        </div>
+                        <div class="nav-item" data-tab="base64">
+                            <i class="fas fa-code"></i>
+                            <span data-i18n="nav.base64">Base64 Tools</span>
+                            <div class="nav-tooltip" data-i18n="nav.base64.tooltip">Encode/decode Base64</div>
+                        </div>
+                        <div class="nav-item" data-tab="help">
+                            <i class="fas fa-question-circle"></i>
+                            <span data-i18n="nav.help">Help</span>
+                            <div class="nav-tooltip" data-i18n="nav.help.tooltip">Usage guide and documentation</div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div class="tab-content active" id="decoder-tab">
+                    <div class="page-header">
+                        <h2><i class="fas fa-unlock"></i> <span data-i18n="decoder.title">JWT Token Decoder</span></h2>
+                        <p data-i18n="decoder.subtitle">Decode and analyze JWT tokens to view their structure and claims</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-paste"></i> <span data-i18n="decoder.token_input">JWT Token Input</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="jwt-input">
+                                    <i class="fas fa-key"></i> <span data-i18n="decoder.jwt_token">JWT Token</span>
+                                </label>
+                                <textarea id="jwt-input" data-i18n-placeholder="decoder.jwt_placeholder" rows="4"></textarea>
+                                <div class="input-help">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span data-i18n="decoder.input_help">Paste a complete JWT token (header.payload.signature)</span>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-primary" id="decode-btn">
+                                    <i class="fas fa-search"></i> <span data-i18n="decoder.decode_token">Decode Token</span>
+                                </button>
+                                <button class="btn btn-outline" id="clear-decode-btn">
+                                    <i class="fas fa-trash"></i> <span data-i18n="decoder.clear">Clear</span>
+                                </button>
+                                <button class="btn btn-outline" id="example-token-btn">
+                                    <i class="fas fa-magic"></i> <span data-i18n="decoder.load_example">Load Example</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="jwt-decode-results" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-eye"></i> <span data-i18n="decoder.token_structure">Token Structure</span></h3>
+                            <div class="token-info">
+                                <span class="token-status" id="token-status" data-i18n="decoder.valid">Valid</span>
+                                <span class="token-algorithm" id="token-algorithm">HS256</span>
+                                <button class="btn btn-sm btn-primary" id="send-to-encoder-btn">
+                                    <i class="fas fa-arrow-right"></i> <span data-i18n="decoder.send_to_encoder">Send to Encoder</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="jwt-parts">
+                                <div class="jwt-part">
+                                    <div class="jwt-part-header">
+                                        <h4><i class="fas fa-cog"></i> <span data-i18n="decoder.header">Header</span></h4>
+                                        <button class="btn btn-sm btn-outline copy-btn" data-copy="header">
+                                            <i class="fas fa-copy"></i> <span data-i18n="decoder.copy">Copy</span>
+                                        </button>
+                                    </div>
+                                    <div class="jwt-part-content">
+                                        <div class="jwt-raw">
+                                            <label data-i18n="decoder.base64_encoded">Base64 Encoded:</label>
+                                            <code id="jwt-header-raw"></code>
+                                        </div>
+                                        <div class="jwt-decoded">
+                                            <label data-i18n="decoder.decoded_json">Decoded JSON:</label>
+                                            <pre id="jwt-header-decoded"></pre>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="jwt-part">
+                                    <div class="jwt-part-header">
+                                        <h4><i class="fas fa-database"></i> <span data-i18n="decoder.payload">Payload</span></h4>
+                                        <button class="btn btn-sm btn-outline copy-btn" data-copy="payload">
+                                            <i class="fas fa-copy"></i> <span data-i18n="decoder.copy">Copy</span>
+                                        </button>
+                                    </div>
+                                    <div class="jwt-part-content">
+                                        <div class="jwt-raw">
+                                            <label data-i18n="decoder.base64_encoded">Base64 Encoded:</label>
+                                            <code id="jwt-payload-raw"></code>
+                                        </div>
+                                        <div class="jwt-decoded">
+                                            <label data-i18n="decoder.decoded_json">Decoded JSON:</label>
+                                            <pre id="jwt-payload-decoded"></pre>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="jwt-part">
+                                    <div class="jwt-part-header">
+                                        <h4><i class="fas fa-shield-alt"></i> <span data-i18n="decoder.signature">Signature</span></h4>
+                                        <button class="btn btn-sm btn-outline copy-btn" data-copy="signature">
+                                            <i class="fas fa-copy"></i> <span data-i18n="decoder.copy">Copy</span>
+                                        </button>
+                                    </div>
+                                    <div class="jwt-part-content">
+                                        <div class="jwt-raw">
+                                            <label data-i18n="decoder.base64_encoded">Base64 Encoded:</label>
+                                            <code id="jwt-signature-raw"></code>
+                                        </div>
+                                        <div class="signature-info">
+                                            <div class="signature-analysis" id="signature-analysis">
+                                                <div class="signature-details">
+                                                    <span class="signature-label" data-i18n="decoder.algorithm">Algorithm:</span>
+                                                    <span class="signature-value" id="signature-algorithm">-</span>
+                                                </div>
+                                                <div class="signature-details">
+                                                    <span class="signature-label" data-i18n="decoder.length">Length:</span>
+                                                    <span class="signature-value" id="signature-length">-</span>
+                                                </div>
+                                                <div class="signature-details">
+                                                    <span class="signature-label" data-i18n="decoder.status">Status:</span>
+                                                    <span class="signature-value signature-status" id="signature-status" data-i18n="decoder.unknown">Unknown</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="claims-analysis" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-list"></i> <span data-i18n="decoder.claims_analysis">Claims Analysis</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="claims-grid" id="claims-grid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="encoder-tab">
+                    <div class="page-header">
+                        <h2><i class="fas fa-lock"></i> <span data-i18n="encoder.title">JWT Token Encoder</span></h2>
+                        <p data-i18n="encoder.subtitle">Create custom JWT tokens with any header, payload, and signature</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-cogs"></i> <span data-i18n="encoder.token_config">Token Configuration</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="encoder-grid">
+                                <div class="encoder-section">
+                                    <h4><i class="fas fa-cog"></i> <span data-i18n="encoder.header">Header</span></h4>
+                                    <textarea id="jwt-header-input" rows="4" data-i18n-placeholder="encoder.header_placeholder"></textarea>
+                                </div>
+                                <div class="encoder-section">
+                                    <h4><i class="fas fa-database"></i> <span data-i18n="encoder.payload">Payload</span></h4>
+                                    <textarea id="jwt-payload-input" rows="6" data-i18n-placeholder="encoder.payload_placeholder"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="encoder-controls">
+                                <div class="form-group">
+                                    <label for="jwt-algorithm">
+                                        <i class="fas fa-shield-alt"></i> <span data-i18n="encoder.algorithm">Algorithm</span>
+                                    </label>
+                                    <select id="jwt-algorithm">
+                                        <option value="HS256" data-i18n="encoder.hs256">HS256 (HMAC SHA-256)</option>
+                                        <option value="HS384" data-i18n="encoder.hs384">HS384 (HMAC SHA-384)</option>
+                                        <option value="HS512" data-i18n="encoder.hs512">HS512 (HMAC SHA-512)</option>
+                                        <option value="RS256" data-i18n="encoder.rs256">RS256 (RSA SHA-256)</option>
+                                        <option value="RS384" data-i18n="encoder.rs384">RS384 (RSA SHA-384)</option>
+                                        <option value="RS512" data-i18n="encoder.rs512">RS512 (RSA SHA-512)</option>
+                                        <option value="none" data-i18n="encoder.none">none (No signature)</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" id="secret-group">
+                                    <label for="jwt-secret">
+                                        <i class="fas fa-key"></i> <span data-i18n="encoder.secret_key">Secret/Private Key</span>
+                                    </label>
+                                    <textarea id="jwt-secret" rows="3" data-i18n-placeholder="encoder.secret_placeholder"></textarea>
+                                    <div class="input-help">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span data-i18n="encoder.secret_help">For HMAC: Enter secret string. For RSA: Enter private key in PEM format.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button class="btn btn-primary" id="encode-jwt-btn">
+                                    <i class="fas fa-lock"></i> <span data-i18n="encoder.generate_token">Generate Token</span>
+                                </button>
+                                <button class="btn btn-outline" id="clear-encoder-btn">
+                                    <i class="fas fa-eraser"></i> <span data-i18n="encoder.clear_all">Clear All</span>
+                                </button>
+                                <button class="btn btn-outline" id="load-template-btn">
+                                    <i class="fas fa-file-import"></i> <span data-i18n="encoder.load_template">Load Template</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="generated-token-result" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-check-circle"></i> <span data-i18n="encoder.generated_token">Generated Token</span></h3>
+                            <div class="token-actions">
+                                <button class="btn btn-sm btn-outline" id="copy-generated-token">
+                                    <i class="fas fa-copy"></i> <span data-i18n="encoder.copy_token">Copy Token</span>
+                                </button>
+                                <button class="btn btn-sm btn-outline" id="test-generated-token">
+                                    <i class="fas fa-flask"></i> <span data-i18n="encoder.test_token">Test Token</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="token-output">
+                                <textarea id="generated-token" readonly rows="4"></textarea>
+                            </div>
+                            <div class="token-validation" id="token-validation"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="security-tab">
+                    <div class="page-header">
+                        <h2><i class="fas fa-bug"></i> <span data-i18n="security.title">Security Analysis</span></h2>
+                        <p data-i18n="security.subtitle">Comprehensive vulnerability analysis for JWT tokens</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-search"></i> <span data-i18n="security.token_scanner">Token Security Scanner</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="security-jwt-input">
+                                    <i class="fas fa-shield-alt"></i> <span data-i18n="security.jwt_to_analyze">JWT Token to Analyze</span>
+                                </label>
+                                <textarea id="security-jwt-input" rows="3" data-i18n-placeholder="security.jwt_placeholder"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-primary" id="analyze-security-btn">
+                                    <i class="fas fa-search"></i> <span data-i18n="security.analyze_security">Analyze Security</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="security-results" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-exclamation-triangle"></i> <span data-i18n="security.security_assessment">Security Assessment</span></h3>
+                            <div class="security-score">
+                                <span class="score-label" data-i18n="security.security_score">Security Score:</span>
+                                <span class="score-value" id="security-score">-</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="vulnerabilities-summary">
+                                <div class="vuln-count critical">
+                                    <span class="count" id="critical-count">0</span>
+                                    <span class="label" data-i18n="security.critical">Critical</span>
+                                </div>
+                                <div class="vuln-count high">
+                                    <span class="count" id="high-count">0</span>
+                                    <span class="label" data-i18n="security.high">High</span>
+                                </div>
+                                <div class="vuln-count medium">
+                                    <span class="count" id="medium-count">0</span>
+                                    <span class="label" data-i18n="security.medium">Medium</span>
+                                </div>
+                                <div class="vuln-count low">
+                                    <span class="count" id="low-count">0</span>
+                                    <span class="label" data-i18n="security.low">Low</span>
+                                </div>
+                            </div>
+                            <div class="vulnerabilities-list" id="vulnerabilities-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="attacks-tab">
+                    <div class="page-header">
+                        <h2><span data-i18n="attacks.title">Attack Vectors</span></h2>
+                        <p data-i18n="attacks.subtitle">Generate attack payloads for common JWT vulnerabilities</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-bullseye"></i> <span data-i18n="attacks.attack_generator">Attack Generator</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="attack-jwt-input">
+                                    <i class="fas fa-key"></i> <span data-i18n="attacks.target_jwt">Target JWT Token</span>
+                                </label>
+                                <textarea id="attack-jwt-input" rows="3" data-i18n-placeholder="attacks.target_placeholder"></textarea>
+                            </div>
+
+                            <div class="attack-categories">
+                                <div class="attack-category">
+                                    <h4><span data-i18n="attacks.attacks">Attacks</span></h4>
+                                    <div class="attack-grid">
+                                        <div class="attack-card" data-attack="none">
+                                            <div class="attack-icon critical">
+                                                <i class="fas fa-ban"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.algorithm_none">Algorithm None</h5>
+                                            <p data-i18n="attacks.algorithm_none_desc">Remove signature verification by setting algorithm to "none"</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="none" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="none">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="confusion">
+                                            <div class="attack-icon high">
+                                                <i class="fas fa-exchange-alt"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.algorithm_confusion">Algorithm Confusion</h5>
+                                            <p data-i18n="attacks.algorithm_confusion_desc">Change RS256 to HS256 using public key as HMAC secret</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="confusion" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="confusion">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="weak-secret">
+                                            <div class="attack-icon medium">
+                                                <i class="fas fa-key"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.weak_secret">Weak Secret</h5>
+                                            <p data-i18n="attacks.weak_secret_desc">Exploit weak HMAC secrets using dictionary attacks</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="weak-secret" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="weak-secret">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="replay">
+                                            <div class="attack-icon low">
+                                                <i class="fas fa-redo"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.token_replay">Token Replay</h5>
+                                            <p data-i18n="attacks.token_replay_desc">Reuse tokens across different sessions or environments</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="replay" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="replay">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="jwk-injection">
+                                            <div class="attack-icon critical">
+                                                <i class="fas fa-syringe"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.jwk_injection">JWK Injection</h5>
+                                            <p data-i18n="attacks.jwk_injection_desc">Inject malicious JWK in header to bypass signature verification</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="jwk-injection" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="jwk-injection">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="kid-injection">
+                                            <div class="attack-icon critical">
+                                                <i class="fas fa-code"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.kid_injection">Kid Parameter Injection</h5>
+                                            <p data-i18n="attacks.kid_injection_desc">Path traversal and injection via the "kid" header parameter</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="kid-injection" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="kid-injection">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="jku-hijack">
+                                            <div class="attack-icon high">
+                                                <i class="fas fa-globe"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.jku_hijack">JKU URL Hijacking</h5>
+                                            <p data-i18n="attacks.jku_hijack_desc">Point JKU to attacker-controlled JWK set</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="jku-hijack" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="jku-hijack">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="x5u-exploit">
+                                            <div class="attack-icon high">
+                                                <i class="fas fa-certificate"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.x5u_exploit">X5U Certificate Exploit</h5>
+                                            <p data-i18n="attacks.x5u_exploit_desc">Exploit X.509 certificate URL parameter</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="x5u-exploit" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="x5u-exploit">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="jwt-smuggling">
+                                            <div class="attack-icon high">
+                                                <i class="fas fa-shipping-fast"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.jwt_smuggling">JWT Smuggling</h5>
+                                            <p data-i18n="attacks.jwt_smuggling_desc">Exploit parsing differences between JWT libraries</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="jwt-smuggling" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="jwt-smuggling">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="nested-jwt">
+                                            <div class="attack-icon medium">
+                                                <i class="fas fa-layer-group"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.nested_jwt">Nested JWT Attack</h5>
+                                            <p data-i18n="attacks.nested_jwt_desc">JWT inside JWT confusion and privilege escalation</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="nested-jwt" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="nested-jwt">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="audience-confusion">
+                                            <div class="attack-icon medium">
+                                                <i class="fas fa-users"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.audience_confusion">Audience Confusion</h5>
+                                            <p data-i18n="attacks.audience_confusion_desc">Multi-audience token reuse across services</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="audience-confusion" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="audience-confusion">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="parameter-pollution">
+                                            <div class="attack-icon medium">
+                                                <i class="fas fa-clone"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.parameter_pollution">Parameter Pollution</h5>
+                                            <p data-i18n="attacks.parameter_pollution_desc">Duplicate parameters with conflicting values</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="parameter-pollution" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="parameter-pollution">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="timing-attack">
+                                            <div class="attack-icon low">
+                                                <i class="fas fa-stopwatch"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.timing_attack">Timing Attack</h5>
+                                            <p data-i18n="attacks.timing_attack_desc">Exploit timing differences in signature verification</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="timing-attack" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="timing-attack">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="jwt-sidejacking">
+                                            <div class="attack-icon medium">
+                                                <i class="fas fa-wifi"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.jwt_sidejacking">JWT Sidejacking</h5>
+                                            <p data-i18n="attacks.jwt_sidejacking_desc">Session hijacking specific to JWT implementations</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="jwt-sidejacking" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="jwt-sidejacking">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="jwks-poisoning">
+                                            <div class="attack-icon high">
+                                                <i class="fas fa-biohazard"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.jwks_poisoning">JWKS Cache Poisoning</h5>
+                                            <p data-i18n="attacks.jwks_poisoning_desc">Poison JWKS cache with malicious keys</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="jwks-poisoning" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="jwks-poisoning">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="attack-card" data-attack="quantum-prep">
+                                            <div class="attack-icon low">
+                                                <i class="fas fa-atom"></i>
+                                            </div>
+                                            <h5 data-i18n="attacks.quantum_prep">Quantum-Prep Attack</h5>
+                                            <p data-i18n="attacks.quantum_prep_desc">Test quantum-vulnerable algorithms and key sizes</p>
+                                            <div class="attack-actions">
+                                                <button class="btn btn-sm btn-primary attack-generate-btn" data-attack="quantum-prep" data-i18n="attacks.generate_attack">Generate Attack</button>
+                                                <button class="btn btn-sm btn-outline attack-info-btn" data-attack="quantum-prep">
+                                                    <i class="fas fa-info-circle"></i> <span data-i18n="modal.how_it_works">How it works</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="attack-results" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-magic"></i> <span data-i18n="attacks.generated_payloads">Generated Attack Payloads</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="attack-payloads" id="attack-payloads"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="bruteforce-tab">
+                    <div class="page-header">
+                        <h2><i class="fas fa-hammer"></i> <span data-i18n="bruteforce.title">Secret Brute Force</span></h2>
+                        <p data-i18n="bruteforce.subtitle">Crack weak HMAC secrets using dictionary attacks</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-crosshairs"></i> <span data-i18n="bruteforce.config">Brute Force Configuration</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="brute-force-grid">
+                                <div class="brute-force-section">
+                                    <h4><i class="fas fa-key"></i> <span data-i18n="bruteforce.target_token">Target Token</span></h4>
+                                    <textarea id="bruteforce-jwt-input" rows="3" data-i18n-placeholder="bruteforce.token_placeholder"></textarea>
+                                </div>
+                                <div class="brute-force-section">
+                                    <h4><i class="fas fa-list"></i> <span data-i18n="bruteforce.secret_wordlist">Secret Wordlist</span></h4>
+                                    <textarea id="secret-wordlist" rows="8" data-i18n-placeholder="bruteforce.wordlist_placeholder"></textarea>
+                                    <div class="wordlist-actions">
+                                        <button class="btn btn-sm btn-outline" id="load-common-secrets">
+                                            <i class="fas fa-download"></i> <span data-i18n="bruteforce.load_common">Load Common Secrets</span>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline" id="load-wordlist-file">
+                                            <i class="fas fa-file-upload"></i> <span data-i18n="bruteforce.load_file">Load File</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="brute-force-controls">
+                                <button class="btn btn-primary" id="start-bruteforce">
+                                    <i class="fas fa-play"></i> <span data-i18n="bruteforce.start">Start Brute Force</span>
+                                </button>
+                                <button class="btn btn-danger" id="stop-bruteforce" disabled>
+                                    <i class="fas fa-stop"></i> <span data-i18n="bruteforce.stop">Stop</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="bruteforce-progress" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-cogs fa-spin"></i> <span data-i18n="bruteforce.in_progress">Brute Force in Progress</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="brute-progress-fill"></div>
+                                </div>
+                                <div class="progress-stats">
+                                    <span id="brute-progress-text" data-i18n="bruteforce.testing_secrets">Testing secrets...</span>
+                                    <span id="brute-progress-percentage">0%</span>
+                                </div>
+                            </div>
+                            <div class="brute-force-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label" data-i18n="bruteforce.current">Current:</span>
+                                    <span class="stat-value" id="current-secret">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label" data-i18n="bruteforce.tested">Tested:</span>
+                                    <span class="stat-value" id="tested-count">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label" data-i18n="bruteforce.remaining">Remaining:</span>
+                                    <span class="stat-value" id="remaining-count">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label" data-i18n="bruteforce.speed">Speed:</span>
+                                    <span class="stat-value" id="brute-speed">0/s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="bruteforce-results" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-trophy"></i> <span data-i18n="bruteforce.secret_cracked">Secret Cracked!</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="cracked-secret">
+                                <label data-i18n="bruteforce.discovered_secret">Discovered Secret:</label>
+                                <div class="secret-display">
+                                    <code id="cracked-secret-value"></code>
+                                    <button class="btn btn-sm btn-outline" id="copy-cracked-secret">
+                                        <i class="fas fa-copy"></i> <span data-i18n="bruteforce.copy">Copy</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="secret-actions">
+                                <button class="btn btn-primary" id="use-secret-encoder">
+                                    <i class="fas fa-magic"></i> <span data-i18n="bruteforce.use_in_encoder">Use in Encoder</span>
+                                </button>
+                                <button class="btn btn-outline" id="generate-new-tokens">
+                                    <i class="fas fa-cogs"></i> <span data-i18n="bruteforce.generate_new_tokens">Generate New Tokens</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="keygen-tab">
+                    <div class="page-header">
+                        <h2><i class="fas fa-cogs"></i> <span data-i18n="keygen.title">Key Generator</span></h2>
+                        <p data-i18n="keygen.subtitle">Generate secure keys for JWT token signing</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-key"></i> <span data-i18n="keygen.key_generation">Key Generation</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="key-gen-grid">
+                                <div class="key-gen-section">
+                                    <h4><i class="fas fa-shield-alt"></i> <span data-i18n="keygen.hmac_secrets">HMAC Secrets</span></h4>
+                                    <div class="form-group">
+                                        <label data-i18n="keygen.secret_length">Secret Length:</label>
+                                        <select id="hmac-length">
+                                            <option value="32" data-i18n="keygen.256_bit">256-bit (32 bytes)</option>
+                                            <option value="48" data-i18n="keygen.384_bit">384-bit (48 bytes)</option>
+                                            <option value="64" data-i18n="keygen.512_bit">512-bit (64 bytes)</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-primary" id="generate-hmac-secret">
+                                        <i class="fas fa-random"></i> <span data-i18n="keygen.generate_hmac">Generate HMAC Secret</span>
+                                    </button>
+                                    <div class="key-result" id="hmac-result" style="display: none;">
+                                        <label data-i18n="keygen.generated_secret">Generated Secret:</label>
+                                        <textarea id="hmac-secret" readonly rows="2"></textarea>
+                                        <button class="btn btn-sm btn-outline" id="copy-hmac-secret">
+                                            <i class="fas fa-copy"></i> <span data-i18n="keygen.copy">Copy</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="key-gen-section">
+                                    <h4><i class="fas fa-lock"></i> <span data-i18n="keygen.rsa_keypairs">RSA Key Pairs</span></h4>
+                                    <div class="form-group">
+                                        <label data-i18n="keygen.key_size">Key Size:</label>
+                                        <select id="rsa-size">
+                                            <option value="2048" data-i18n="keygen.2048_bit">2048-bit</option>
+                                            <option value="3072" data-i18n="keygen.3072_bit">3072-bit</option>
+                                            <option value="4096" data-i18n="keygen.4096_bit">4096-bit</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-primary" id="generate-rsa-keys">
+                                        <i class="fas fa-cogs"></i> <span data-i18n="keygen.generate_rsa">Generate RSA Keys</span>
+                                    </button>
+                                    <div class="key-result" id="rsa-result" style="display: none;">
+                                        <div class="key-pair">
+                                            <div class="key-item">
+                                                <label data-i18n="keygen.private_key">Private Key:</label>
+                                                <textarea id="rsa-private-key" readonly rows="8"></textarea>
+                                                <button class="btn btn-sm btn-outline" id="copy-private-key">
+                                                    <i class="fas fa-copy"></i> <span data-i18n="keygen.copy">Copy</span>
+                                                </button>
+                                            </div>
+                                            <div class="key-item">
+                                                <label data-i18n="keygen.public_key">Public Key:</label>
+                                                <textarea id="rsa-public-key" readonly rows="4"></textarea>
+                                                <button class="btn btn-sm btn-outline" id="copy-public-key">
+                                                    <i class="fas fa-copy"></i> <span data-i18n="keygen.copy">Copy</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="validator-tab">
+                    <div class="page-header">
+                        <h2><i class="fas fa-check-circle"></i> <span data-i18n="validator.title">Token Validator</span></h2>
+                        <p data-i18n="validator.subtitle">Verify JWT token signatures and validate claims</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-shield-alt"></i> <span data-i18n="validator.token_validation">Token Validation</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="validator-grid">
+                                <div class="validator-section">
+                                    <h4><i class="fas fa-key"></i> <span data-i18n="validator.jwt_token">JWT Token</span></h4>
+                                    <textarea id="validator-jwt-input" rows="3" data-i18n-placeholder="validator.token_placeholder"></textarea>
+                                </div>
+                                <div class="validator-section">
+                                    <h4><i class="fas fa-lock"></i> <span data-i18n="validator.secret_key">Secret/Public Key</span></h4>
+                                    <textarea id="validator-key-input" rows="3" data-i18n-placeholder="validator.key_placeholder"></textarea>
+                                </div>
+                            </div>
+                            <div class="validator-controls">
+                                <button class="btn btn-primary" id="validate-token">
+                                    <i class="fas fa-check"></i> <span data-i18n="validator.validate_token">Validate Token</span>
+                                </button>
+                                <button class="btn btn-outline" id="validate-signature-only">
+                                    <i class="fas fa-signature"></i> <span data-i18n="validator.signature_only">Signature Only</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="validation-results" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-clipboard-check"></i> <span data-i18n="validator.validation_results">Validation Results</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="validation-summary" id="validation-summary"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="http-tester-tab">
+                    <div class="page-header">
+                        <h2><i class="fas fa-globe"></i> <span data-i18n="http.title">HTTP Tester</span></h2>
+                        <p data-i18n="http.subtitle">Test JWT tokens in HTTP requests</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-paper-plane"></i> <span data-i18n="http.request_builder">HTTP Request Builder</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="http-builder">
+                                <div class="http-request-line">
+                                    <select id="http-method">
+                                        <option value="GET">GET</option>
+                                        <option value="POST">POST</option>
+                                        <option value="PUT">PUT</option>
+                                        <option value="DELETE">DELETE</option>
+                                        <option value="PATCH">PATCH</option>
+                                    </select>
+                                    <input type="url" id="http-url" data-i18n-placeholder="http.url_placeholder">
+                                    <button class="btn btn-primary" id="send-request">
+                                        <i class="fas fa-paper-plane"></i> <span data-i18n="http.send">Send</span>
+                                    </button>
+                                </div>
+                                <div class="http-tabs">
+                                    <button class="http-tab active" data-tab="headers" data-i18n="http.headers">Headers</button>
+                                    <button class="http-tab" data-tab="body" data-i18n="http.body">Body</button>
+                                    <button class="http-tab" data-tab="auth" data-i18n="http.authorization">Authorization</button>
+                                </div>
+                                <div class="http-tab-content">
+                                    <div class="http-tab-pane active" id="headers-pane">
+                                        <textarea id="request-headers" rows="4" data-i18n-placeholder="http.headers_placeholder"></textarea>
+                                    </div>
+                                    <div class="http-tab-pane" id="body-pane">
+                                        <textarea id="request-body" rows="4" data-i18n-placeholder="http.body_placeholder"></textarea>
+                                    </div>
+                                    <div class="http-tab-pane" id="auth-pane">
+                                        <div class="auth-config">
+                                            <label>
+                                                <input type="radio" name="auth-type" value="bearer" checked>
+                                                <span data-i18n="http.bearer_token">Bearer Token</span>
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="auth-type" value="custom">
+                                                <span data-i18n="http.custom_header">Custom Header</span>
+                                            </label>
+                                        </div>
+                                        <textarea id="auth-token" rows="3" data-i18n-placeholder="http.token_placeholder"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="http-response" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-reply"></i> <span data-i18n="http.response">Response</span></h3>
+                            <div class="response-info">
+                                <span class="response-status" id="response-status">200</span>
+                                <span class="response-time" id="response-time">0ms</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="response-tabs">
+                                <button class="response-tab active" data-tab="response-body" data-i18n="http.response_body">Response</button>
+                                <button class="response-tab" data-tab="response-headers" data-i18n="http.response_headers">Headers</button>
+                            </div>
+                            <div class="response-content">
+                                <div class="response-tab-pane active" id="response-body-pane">
+                                    <pre id="response-body"></pre>
+                                </div>
+                                <div class="response-tab-pane" id="response-headers-pane">
+                                    <pre id="response-headers"></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="base64-tab">
+                    <div class="page-header">
+                        <h2><i class="fas fa-code"></i> <span data-i18n="base64.title">Base64 Tools</span></h2>
+                        <p data-i18n="base64.subtitle">Encode and decode Base64 strings</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-exchange-alt"></i> <span data-i18n="base64.encoder_decoder">Base64 Encoder/Decoder</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="base64-grid">
+                                <div class="base64-section">
+                                    <h4><i class="fas fa-font"></i> <span data-i18n="base64.plain_text">Plain Text</span></h4>
+                                    <textarea id="base64-plain" rows="6" data-i18n-placeholder="base64.plain_placeholder"></textarea>
+                                    <button class="btn btn-primary" id="encode-base64">
+                                        <i class="fas fa-arrow-down"></i> <span data-i18n="base64.encode">Encode</span>
+                                    </button>
+                                </div>
+                                <div class="base64-section">
+                                    <h4><i class="fas fa-code"></i> <span data-i18n="base64.base64">Base64</span></h4>
+                                    <textarea id="base64-encoded" rows="6" data-i18n-placeholder="base64.base64_placeholder"></textarea>
+                                    <button class="btn btn-primary" id="decode-base64">
+                                        <i class="fas fa-arrow-up"></i> <span data-i18n="base64.decode">Decode</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="help-tab">
+                    <div class="page-header">
+                        <h2><i class="fas fa-question-circle"></i> <span data-i18n="help.title">Help & Documentation</span></h2>
+                        <p data-i18n="help.subtitle">Learn how to use JWT Security Analyzer effectively</p>
+                    </div>
+
+                    <div class="help-grid">
+                        <div class="card help-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-rocket"></i> <span data-i18n="help.getting_started">Getting Started</span></h3>
+                            </div>
+                            <div class="card-body">
+                                <ol>
+                                    <li data-i18n="help.step1">Start with the JWT Decoder to analyze existing tokens and understand their structure</li>
+                                    <li data-i18n="help.step2">Use the JWT Encoder to create custom tokens with your own header, payload, and signature</li>
+                                    <li data-i18n="help.step3">Run Security Analysis to identify potential vulnerabilities in your tokens</li>
+                                    <li data-i18n="help.step4">Generate Attack Vectors to test your application's JWT implementation</li>
+                                    <li data-i18n="help.step5">Use Brute Force to test the strength of HMAC secrets</li>
+                                    <li data-i18n="help.step6">Generate secure keys with the Key Generator for production use</li>
+                                </ol>
+
+                                <h4 data-i18n="help.key_features">Key Features:</h4>
+                                <ul>
+                                    <li data-i18n="help.feature1">Comprehensive JWT token decoding and analysis</li>
+                                    <li data-i18n="help.feature2">Custom token generation with multiple algorithms</li>
+                                    <li data-i18n="help.feature3">Advanced security vulnerability detection</li>
+                                    <li data-i18n="help.feature4">16+ attack vector generators for penetration testing</li>
+                                    <li data-i18n="help.feature5">Dictionary-based secret brute forcing</li>
+                                    <li data-i18n="help.feature6">Secure HMAC and RSA key generation</li>
+                                    <li data-i18n="help.feature7">Token signature validation and verification</li>
+                                    <li data-i18n="help.feature8">HTTP request testing with JWT tokens</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card help-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-shield-alt"></i> <span data-i18n="help.supported_algorithms">Supported Algorithms</span></h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="algorithm-support">
+                                    <div class="support-section">
+                                        <h4 data-i18n="help.hmac_algorithms">HMAC Algorithms:</h4>
+                                        <div class="algorithm-tags">
+                                            <span class="algorithm-tag">HS256</span>
+                                            <span class="algorithm-tag">HS384</span>
+                                            <span class="algorithm-tag">HS512</span>
+                                        </div>
+                                    </div>
+                                    <div class="support-section">
+                                        <h4 data-i18n="help.rsa_algorithms">RSA Algorithms:</h4>
+                                        <div class="algorithm-tags">
+                                            <span class="algorithm-tag">RS256</span>
+                                            <span class="algorithm-tag">RS384</span>
+                                            <span class="algorithm-tag">RS512</span>
+                                        </div>
+                                    </div>
+                                    <div class="support-section">
+                                        <h4 data-i18n="help.other_algorithms">Other:</h4>
+                                        <div class="algorithm-tags">
+                                            <span class="algorithm-tag">none</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="algorithm-notes">
+                                    <h4 data-i18n="help.algorithm_notes">Algorithm Notes:</h4>
+                                    <ul>
+                                        <li data-i18n="help.algorithm_note1">HMAC algorithms use symmetric keys (shared secret)</li>
+                                        <li data-i18n="help.algorithm_note2">RSA algorithms use asymmetric keys (private/public key pairs)</li>
+                                        <li data-i18n="help.algorithm_note3">The "none" algorithm disables signature verification (dangerous!)</li>
+                                        <li data-i18n="help.algorithm_note4">Higher bit lengths (384, 512) provide stronger security</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card help-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-crosshairs"></i> <span data-i18n="help.attack_vectors">Attack Vectors Guide</span></h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="attack-help">
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.algorithm_none_help">Algorithm None Attack:</h5>
+                                        <p data-i18n="help.algorithm_none_desc">Removes signature verification by changing the algorithm to "none". Test if your application validates algorithms.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.algorithm_confusion_help">Algorithm Confusion:</h5>
+                                        <p data-i18n="help.algorithm_confusion_desc">Changes RS256 to HS256, using the public key as an HMAC secret. Exploits applications that don't properly validate algorithm types.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.weak_secret_help">Weak Secret Attack:</h5>
+                                        <p data-i18n="help.weak_secret_desc">Targets HMAC-signed JWTs with predictable secrets. Use dictionary attacks to discover weak passwords like "secret", "password", or "key".</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.token_replay_help">Token Replay Attack:</h5>
+                                        <p data-i18n="help.token_replay_desc">Exploits tokens without proper expiration or time-based claims. Removes exp, nbf, and iat claims to enable indefinite token reuse.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.jwk_injection_help">JWK Injection:</h5>
+                                        <p data-i18n="help.jwk_injection_desc">Injects a malicious JWK (JSON Web Key) in the token header to bypass signature verification.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.kid_injection_help">Kid Parameter Injection:</h5>
+                                        <p data-i18n="help.kid_injection_desc">Exploits the "kid" (Key ID) parameter for path traversal and injection attacks when applications use it unsafely.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.jku_hijack_help">JKU URL Hijacking:</h5>
+                                        <p data-i18n="help.jku_hijack_desc">Points the "jku" parameter to attacker-controlled servers hosting malicious JWK sets for signature bypass.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.x5u_exploit_help">X5U Certificate Exploit:</h5>
+                                        <p data-i18n="help.x5u_exploit_desc">Exploits the "x5u" parameter by pointing to malicious X.509 certificate chains, enabling signature bypass and SSRF attacks.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.jwt_smuggling_help">JWT Smuggling:</h5>
+                                        <p data-i18n="help.jwt_smuggling_desc">Exploits parsing differences between JWT libraries to smuggle malicious tokens.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.nested_jwt_help">Nested JWT Attack:</h5>
+                                        <p data-i18n="help.nested_jwt_desc">Places one JWT inside another's payload to exploit validation logic and achieve privilege escalation through token confusion.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.audience_confusion_help">Audience Confusion:</h5>
+                                        <p data-i18n="help.audience_confusion_desc">Exploits weak audience claim validation to enable cross-service token reuse and privilege escalation.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.parameter_pollution_help">Parameter Pollution:</h5>
+                                        <p data-i18n="help.parameter_pollution_desc">Uses duplicate JSON keys with conflicting values to exploit parsing differences between libraries.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.timing_attack_help">Timing Attack:</h5>
+                                        <p data-i18n="help.timing_attack_desc">Analyzes signature verification timing to extract key material or bypass security through statistical timing analysis.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.jwt_sidejacking_help">JWT Sidejacking:</h5>
+                                        <p data-i18n="help.jwt_sidejacking_desc">Targets JWT-specific session management vulnerabilities including token hijacking, fixation, and cross-site theft.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.jwks_poisoning_help">JWKS Cache Poisoning:</h5>
+                                        <p data-i18n="help.jwks_poisoning_desc">Poisons JSON Web Key Set caches with malicious keys to compromise all applications using the poisoned cache.</p>
+                                    </div>
+
+                                    <div class="attack-item">
+                                        <h5 data-i18n="help.quantum_prep_help">Quantum-Prep Attack:</h5>
+                                        <p data-i18n="help.quantum_prep_desc">Evaluates JWT resistance to future quantum computing attacks and recommends post-quantum cryptography migration.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card help-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-cogs"></i> <span data-i18n="help.tools_guide">Tools Guide</span></h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="tools-help">
+                                    <div class="tool-item">
+                                        <h5 data-i18n="help.decoder_help">JWT Decoder:</h5>
+                                        <p data-i18n="help.decoder_desc">Paste any JWT token to see its header, payload, and signature in human-readable format. Analyzes claims and provides token structure insights.</p>
+                                    </div>
+
+                                    <div class="tool-item">
+                                        <h5 data-i18n="help.encoder_help">JWT Encoder:</h5>
+                                        <p data-i18n="help.encoder_desc">Create custom JWT tokens by specifying header, payload, algorithm, and secret. Supports templates for common token structures.</p>
+                                    </div>
+
+                                    <div class="tool-item">
+                                        <h5 data-i18n="help.security_help">Security Analysis:</h5>
+                                        <p data-i18n="help.security_desc">Comprehensive vulnerability scanner that checks for common JWT security issues and provides a security score.</p>
+                                    </div>
+
+                                    <div class="tool-item">
+                                        <h5 data-i18n="help.bruteforce_help">Brute Force:</h5>
+                                        <p data-i18n="help.bruteforce_desc">Test HMAC secret strength using dictionary attacks. Load common secrets or custom wordlists to crack weak tokens.</p>
+                                    </div>
+
+                                    <div class="tool-item">
+                                        <h5 data-i18n="help.keygen_help">Key Generator:</h5>
+                                        <p data-i18n="help.keygen_desc">Generate cryptographically secure HMAC secrets and RSA key pairs for production use. Supports multiple key sizes.</p>
+                                    </div>
+
+                                    <div class="tool-item">
+                                        <h5 data-i18n="help.validator_help">Token Validator:</h5>
+                                        <p data-i18n="help.validator_desc">Verify JWT token signatures and validate claims against provided secrets or public keys.</p>
+                                    </div>
+
+                                    <div class="tool-item">
+                                        <h5 data-i18n="help.http_tester_help">HTTP Tester:</h5>
+                                        <p data-i18n="help.http_tester_desc">Test JWT tokens in real HTTP requests. Configure headers, body, and authorization to see how tokens behave in API calls.</p>
+                                    </div>
+
+                                    <div class="tool-item">
+                                        <h5 data-i18n="help.base64_tools_help">Base64 Tools:</h5>
+                                        <p data-i18n="help.base64_tools_desc">Encode plain text to Base64 or decode Base64 strings back to plain text. Useful for manually crafting JWT components.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card help-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-info-circle"></i> <span data-i18n="help.about">About</span></h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="about-info">
+                                    <div class="app-info">
+                                        <img src="assets/logo.svg" alt="JWT Security Analyzer" class="about-logo">
+                                        <h4 data-i18n="app.title">JWT Security Analyzer</h4>
+                                        <p>Version 1.0.0</p>
+                                        <p data-i18n="help.description">Comprehensive JWT security testing suite</p>
+                                    </div>
+                                    <div class="credits">
+                                        <p data-i18n="help.built_with">www.bavamont.com</p>
+                                        <p data-i18n="help.powered_by">Built for developers</p>
+                                        <p data-i18n="help.auto_updates">Updates with new attack vectors and features</p>
+                                    </div>
+
+                                    <div class="security-disclaimer">
+                                        <h5 data-i18n="help.security_disclaimer_title">Security Disclaimer:</h5>
+                                        <p data-i18n="help.security_disclaimer">This tool is designed for legitimate security testing and educational purposes only. Always ensure you have proper authorization before testing any system. Users are responsible for complying with applicable laws and regulations.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="toast-container" class="toast-container"></div>
+
+        <div id="update-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-download"></i> <span data-i18n="updater.available">Update Available</span></h3>
+                </div>
+                <div class="modal-body">
+                    <div class="update-details">
+                        <div class="version-info">
+                            <div class="version-item">
+                                <span data-i18n="updater.current_version">Current Version:</span>
+                                <span id="modal-current-version">1.0.0</span>
+                            </div>
+                            <div class="version-item">
+                                <span data-i18n="updater.new_version">New Version:</span>
+                                <span id="modal-new-version">1.0.1</span>
+                            </div>
+                        </div>
+
+                        <div class="release-notes" id="release-notes">
+                            <h4 data-i18n="updater.release_notes">Release Notes</h4>
+                            <div id="release-notes-content"></div>
+                        </div>
+
+                        <div class="download-progress" id="download-progress" style="display: none;">
+                            <div class="progress-info">
+                                <span data-i18n="updater.download_progress">Download Progress:</span>
+                                <span id="download-percentage">0%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="download-progress-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" id="skip-update">
+                        <span data-i18n="updater.skip_version">Skip This Version</span>
+                    </button>
+                    <button class="btn btn-outline" id="install-later">
+                        <span data-i18n="updater.install_later">Install Later</span>
+                    </button>
+                    <button class="btn btn-primary" id="install-update">
+                        <i class="fas fa-download"></i>
+                        <span data-i18n="updater.install_now">Install Now</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="attack-explanation-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="attack-explanation-title" data-i18n="modal.attack_explanation">Attack Explanation</h3>
+                    <button class="modal-close" id="close-attack-explanation">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="attack-explanation-content">
+                        <p id="attack-explanation-text"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="close-attack-explanation-btn">
+                        <span data-i18n="modal.close">Close</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="i18n.js"></script>
+    <script src="renderer.js"></script>
+</body>
+</html>
