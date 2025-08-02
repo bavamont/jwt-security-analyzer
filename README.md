@@ -1,6 +1,6 @@
 # JWT Security Analyzer
 
-A desktop application for JWT token analysis, security testing, and penetration testing. Built with Electron for cross-platform compatibility and designed for developers.
+A comprehensive desktop application for JWT token analysis, security testing, and penetration testing. Built with Electron for cross-platform compatibility and designed for security professionals and developers.
 
 ## Features
 
@@ -15,6 +15,12 @@ A desktop application for JWT token analysis, security testing, and penetration 
 - **16+ Attack Vectors** - Generate attack payloads for common JWT vulnerabilities
 - **Brute Force Testing** - Dictionary-based attacks against weak HMAC secrets
 - **Modern Vulnerability Detection** - Including JWK injection, algorithm confusion, and more
+
+### Network & Testing Tools
+- **Network Proxy** - Intercept HTTP/HTTPS traffic to capture JWT tokens from live requests
+- **HTTPS Interception** - Full SSL/TLS decryption with CA certificate support
+- **Replay Attack Simulator** - Test tokens for replay vulnerabilities
+- **Token Comparison** - Compare JWT tokens side-by-side to identify differences
 
 ### Advanced Testing Tools
 - **HTTP Request Tester** - Test JWT tokens in real HTTP requests with custom headers
@@ -70,6 +76,33 @@ A desktop application for JWT token analysis, security testing, and penetration 
 - **Timing Attack** - Exploit timing differences in signature verification
 - **Quantum-Prep Analysis** - Assess quantum computing vulnerability
 
+## Network Proxy Features
+
+### HTTP/HTTPS Interception
+- **Live Traffic Capture** - Intercept JWT tokens from network requests
+- **SSL/TLS Decryption** - Full HTTPS traffic inspection with MITM capabilities
+- **CA Certificate Export** - Export and install trusted root certificate
+- **Real-Time Token Detection** - Automatic JWT extraction from headers, cookies, and bodies
+
+### Proxy Configuration
+1. **Enable HTTPS Interception** - Check the option in proxy settings
+2. **Export CA Certificate** - Click "Export CA Certificate" button
+3. **Install Certificate** - Add to browser's trusted certificate store
+4. **Configure Browser** - Set proxy to 127.0.0.1:8080 (default port)
+5. **Start Capturing** - All JWT tokens will be automatically captured
+
+### Token Replay Testing
+- **Automated Replay** - Send multiple requests with captured tokens
+- **Configurable Parameters** - Adjust delay, request count, and HTTP method
+- **Result Analysis** - Monitor response codes and timing
+- **Vulnerability Detection** - Identify tokens vulnerable to replay attacks
+
+### Token Comparison Tool
+- **Side-by-Side Analysis** - Compare two JWT tokens visually
+- **Difference Highlighting** - Identify changes in headers, claims, and signatures
+- **Structural Comparison** - Detect algorithm changes and claim modifications
+- **Security Impact** - Understand how token changes affect security
+
 ## Quick Start
 
 ### Basic Token Analysis
@@ -78,27 +111,19 @@ A desktop application for JWT token analysis, security testing, and penetration 
 3. **Generate Attacks** - Create attack payloads in the Attack Vectors tab
 4. **Validate Tokens** - Verify signatures using the Token Validator
 
+### Network Traffic Analysis
+1. **Start Proxy** - Enable proxy with optional HTTPS interception
+2. **Configure Browser** - Point browser proxy settings to localhost:8080
+3. **Browse Target Site** - Navigate to pages using JWT authentication
+4. **Capture Tokens** - View all captured JWT tokens in real-time
+5. **Analyze & Test** - Use captured tokens for security analysis
+
 ### Penetration Testing Workflow
-1. **Gather JWT Tokens** - From target application or provided samples
+1. **Gather JWT Tokens** - Use proxy or paste from target application
 2. **Run Security Scan** - Comprehensive vulnerability analysis with scoring
 3. **Generate Attack Payloads** - Create targeted exploits based on findings
 4. **Test with HTTP Tester** - Validate attacks against live endpoints
-
-## Interface Overview
-
-### Main Navigation
-- **JWT Decoder** - Token structure analysis and claims inspection
-- **JWT Encoder** - Custom token creation with templates
-- **Security Analysis** - Automated vulnerability scanning
-- **Attack Vectors** - 16+ attack payload generators
-- **Brute Force** - Dictionary attacks against HMAC secrets
-- **Key Generator** - Secure key generation for testing
-- **Token Validator** - Signature verification and claims validation
-
-### Utilities Section
-- **HTTP Tester** - Test tokens in real HTTP requests
-- **Base64 Tools** - Encode/decode utilities
-- **Help** - Comprehensive documentation
+5. **Simulate Replay Attacks** - Test token replay vulnerabilities
 
 ## Security Analysis Features
 
@@ -116,32 +141,18 @@ A desktop application for JWT token analysis, security testing, and penetration 
 - **Detailed Recommendations** - Specific remediation guidance
 - **Impact Analysis** - Real-world attack scenarios
 
-## Advanced Features
-
-### Brute Force Testing
-- **Dictionary Attacks** - Test against common password lists
-- **Custom Wordlists** - Load your own secret dictionaries
-- **Real-Time Progress** - Live statistics and speed monitoring
-- **Common Secrets** - Built-in database of weak secrets
-
-### Key Generation
-- **HMAC Secrets** - 256, 384, and 512-bit secure random secrets
-- **RSA Key Pairs** - 2048, 3072, and 4096-bit key generation
-- **Production Ready** - Cryptographically secure random generation
-- **Multiple Formats** - PEM format support for RSA keys
-
-### HTTP Testing
-- **Method Support** - GET, POST, PUT, DELETE, PATCH
-- **Custom Headers** - Full header customization
-- **Bearer Token Auth** - Standard JWT authorization
-- **Response Analysis** - Status codes, headers, and timing
-
 ## Installation & Setup
 
 1. **Download** - Get the latest release for your platform
 2. **Install** - Run the installer (Windows) or mount DMG (macOS)
 3. **Launch** - Start JWT Security Analyzer
 4. **Auto-Update** - App will check for updates automatically
+
+### HTTPS Proxy Setup (Optional)
+1. **Export CA Certificate** - From proxy settings
+2. **Install in Browser** - Add to trusted certificate authorities
+3. **Configure Proxy** - Set browser proxy to 127.0.0.1:8080
+4. **Enable HTTPS Interception** - Check the option before starting proxy
 
 ## Security Disclaimer
 
@@ -156,13 +167,24 @@ A desktop application for JWT token analysis, security testing, and penetration 
 
 - **Framework** - Electron for cross-platform desktop apps
 - **JWT Processing** - jsonwebtoken library with comprehensive algorithm support
-- **Cryptography** - Node.js crypto module and forge.js for RSA operations
+- **Cryptography** - Node.js crypto module and node-forge for RSA/certificate operations
+- **Proxy Engine** - HTTP-proxy with custom SSL/TLS interception
 - **UI Technology** - Modern HTML5, CSS3, and JavaScript
 - **Supported Platforms** - Windows 10+, macOS 10.14+, Linux (Ubuntu 18.04+)
 
 ## Update History
 
-**1.0.0** - Initial Release
+**02/08/2025** - 1.1.0 - Added Network Proxy with HTTP/HTTPS interception
+- Implemented SSL/TLS decryption with CA certificate generation
+- Added JWT token capture from live network traffic
+- Introduced Replay Attack Simulator
+- Added Token Comparison tool for side-by-side analysis
+- Improved navigation with collapsible sections
+- Enhanced security analysis with network attack vectors
+- Updated help documentation with new features
+- Fixed various UI/UX improvements
+
+**25/07/2025** - 1.0.0 - Initial Release
 - Complete JWT security testing suite
 - 16+ attack vector generators
 - Multi-language support (English/German)
@@ -174,25 +196,32 @@ A desktop application for JWT token analysis, security testing, and penetration 
 ## Use Cases
 
 ### Developers
-- **Security Testing** - Test JWT implementations before deployment
-- **Learning Tool** - Understand JWT vulnerabilities and best practices
-- **Debugging** - Decode and analyze problematic tokens
+- **API Security Testing** - Test JWT implementations before deployment
+- **Token Debugging** - Decode and analyze problematic tokens
 - **Key Management** - Generate secure keys for development
+- **Security Education** - Learn JWT vulnerabilities hands-on
 
 ### Security Researchers
+- **Live Traffic Analysis** - Capture and analyze JWT tokens from applications
 - **Vulnerability Research** - Explore new JWT attack vectors
-- **Algorithm Analysis** - Test different signing algorithms
-- **Parser Testing** - Test JWT library implementations
-- **Educational Content** - Demonstrate JWT security concepts
+- **Replay Testing** - Identify replay-vulnerable implementations
+- **Security Audits** - Comprehensive JWT security assessments
+
+### Penetration Testers
+- **Network Interception** - MITM proxy for JWT token extraction
+- **Attack Generation** - Create exploit payloads for discovered vulnerabilities
+- **Token Manipulation** - Modify and test token variations
+- **Automated Testing** - Bulk security analysis of captured tokens
 
 ## Credits
 
-**Developed by**: www.bavamont.com
+Developed by **www.bavamont.com**
 
-**Built for**: Penetration testers and developers
+**Built for**: Security professionals, penetration testers, and developers
 
 **Powered by**:
 - Electron framework
 - jsonwebtoken library
 - Node.js cryptography
-- forge.js for RSA operations
+- node-forge for certificate operations
+- http-proxy for network interception

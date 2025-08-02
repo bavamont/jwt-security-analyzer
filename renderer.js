@@ -2,7 +2,6 @@ const { ipcRenderer } = require('electron');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const forge = require('node-forge');
-const CryptoJS = require('crypto-js');
 
 class JWTSecurityAnalyzer {
     constructor() {
@@ -22,6 +21,9 @@ class JWTSecurityAnalyzer {
         this.setupEventListeners();
         this.setupLanguageSelector();
         this.loadAppVersion();
+        this.initializeProxy();
+        this.initializeReplayAttack();
+        this.initializeTokenComparison();
     }
 
     setupLanguageSelector() {
@@ -42,7 +44,6 @@ class JWTSecurityAnalyzer {
                 document.getElementById('modal-current-version').textContent = result.version;
             }
         } catch (error) {
-            console.error('Failed to load app version:', error);
         }
     }
 
@@ -72,7 +73,11 @@ class JWTSecurityAnalyzer {
 
         ipcRenderer.on('update-error', (event, error) => {
             this.showToast('error', i18n.t('toast.update_error'));
-            console.error('Update error:', error);
+        });
+
+        ipcRenderer.on('jwt-token-captured', (event, tokenData) => {
+            this.addCapturedToken(tokenData);
+            this.showToast('info', `${i18n.t('toast.jwt_captured')} ${tokenData.source}`);
         });
     }
 
@@ -86,7 +91,7 @@ class JWTSecurityAnalyzer {
         }
 
         if (releaseNotesElement && updateInfo.releaseNotes) {
-            releaseNotesElement.innerHTML = updateInfo.releaseNotes;
+            releaseNotesElement.textContent = updateInfo.releaseNotes;
         }
 
         modal.style.display = 'block';
@@ -155,6 +160,7 @@ class JWTSecurityAnalyzer {
     }
 
     async checkForUpdates() {
+        this.showToast('info', i18n.t('updater.checking'));
         try {
             const result = await ipcRenderer.invoke('check-for-updates');
             if (!result.success) {
@@ -193,6 +199,12 @@ class JWTSecurityAnalyzer {
             item.addEventListener('click', () => {
                 const tab = item.dataset.tab;
                 this.switchTab(tab);
+            });
+        });
+
+        document.querySelectorAll('.nav-section-header').forEach(header => {
+            header.addEventListener('click', () => {
+                this.toggleNavSection(header);
             });
         });
 
@@ -436,6 +448,19 @@ class JWTSecurityAnalyzer {
         this.currentTab = tabName;
     }
 
+    toggleNavSection(header) {
+        const content = header.nextElementSibling;
+        const isExpanded = content.classList.contains('expanded');
+        
+        if (isExpanded) {
+            content.classList.remove('expanded');
+            header.classList.add('collapsed');
+        } else {
+            content.classList.add('expanded');
+            header.classList.remove('collapsed');
+        }
+    }
+
     switchHTTPTab(tabName) {
         document.querySelectorAll('.http-tab').forEach(tab => {
             tab.classList.remove('active');
@@ -507,10 +532,19 @@ class JWTSecurityAnalyzer {
             return;
         }
 
+        if (token.length > 100000) {
+            this.showToast('error', i18n.t('toast.token_too_large'));
+            return;
+        }
+
         try {
             const parts = token.split('.');
             if (parts.length !== 3) {
                 throw new Error('Invalid JWT format');
+            }
+
+            if (parts[0].length > 10000 || parts[1].length > 50000 || parts[2].length > 10000) {
+                throw new Error('JWT part too large');
             }
 
             const header = JSON.parse(this.base64UrlDecode(parts[0]));
@@ -1416,7 +1450,6 @@ class JWTSecurityAnalyzer {
                         recommendation: i18n.t('vulns.nested_jwt_rec')
                     });
                 } catch (e) {
-                    // Not a valid JWT
                 }
             }
         });
@@ -1738,10 +1771,6 @@ class JWTSecurityAnalyzer {
         return 'poor';
     }
 
-    performDetailedScan() {
-        this.analyzeTokenSecurity();
-        this.showToast('info', i18n.t('toast.detailed_scan_complete'));
-    }
 
     async loadWordlistFile() {
         try {
@@ -2723,9 +2752,6 @@ class JWTSecurityAnalyzer {
         }
     }
 
-    showHelp() {
-        this.showToast('info', 'Help documentation would be displayed here');
-    }
 
     copyToClipboard(text) {
         if (navigator.clipboard && window.isSecureContext) {
@@ -2798,12 +2824,16 @@ class JWTSecurityAnalyzer {
             info: 'fas fa-info-circle'
         };
 
-        toast.innerHTML = `
-            <div class="toast-content">
-                <i class="${icons[type]}"></i>
-                <span class="toast-message">${message}</span>
-            </div>
-        `;
+        const messageSpan = document.createElement('span');
+        messageSpan.className = 'toast-message';
+        messageSpan.textContent = message;
+        
+        const toastContent = document.createElement('div');
+        toastContent.className = 'toast-content';
+        toastContent.innerHTML = `<i class="${icons[type]}"></i>`;
+        toastContent.appendChild(messageSpan);
+        
+        toast.appendChild(toastContent);
 
         container.appendChild(toast);
 
@@ -2821,18 +2851,538 @@ class JWTSecurityAnalyzer {
     }
 
     base64UrlDecode(str) {
+        if (!str || typeof str !== 'string') {
+            throw new Error('Invalid base64url input');
+        }
+        if (str.length > 1000000) {
+            throw new Error('Input too large');
+        }
         let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
         while (base64.length % 4) {
             base64 += '=';
         }
-        return atob(base64);
+        try {
+            return atob(base64);
+        } catch (e) {
+            throw new Error('Invalid base64url encoding');
+        }
     }
 
     base64UrlEncode(str) {
-        return btoa(str)
-            .replace(/\+/g, '-')
-            .replace(/\//g, '_')
-            .replace(/=/g, '');
+        if (typeof str !== 'string') {
+            throw new Error('Invalid input type for encoding');
+        }
+        if (str.length > 1000000) {
+            throw new Error('Input too large');
+        }
+        try {
+            return btoa(str)
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=/g, '');
+        } catch (e) {
+            throw new Error('Failed to encode string');
+        }
+    }
+
+    initializeProxy() {
+        this.proxyServer = null;
+        this.capturedTokens = [];
+        this.setupProxyEventListeners();
+    }
+
+    setupProxyEventListeners() {
+        document.getElementById('start-proxy-btn').addEventListener('click', () => {
+            this.startProxy();
+        });
+
+        document.getElementById('stop-proxy-btn').addEventListener('click', () => {
+            this.stopProxy();
+        });
+
+        document.getElementById('export-ca-btn').addEventListener('click', () => {
+            this.exportCACertificate();
+        });
+
+        document.getElementById('proxy-https').addEventListener('change', (e) => {
+            document.getElementById('https-info').style.display = e.target.checked ? 'block' : 'none';
+        });
+
+        ipcRenderer.on('jwt-token-captured', (event, tokenData) => {
+            this.addCapturedToken(tokenData);
+        });
+
+        this.checkProxyStatus();
+    }
+
+    async checkProxyStatus() {
+        try {
+            const result = await ipcRenderer.invoke('get-proxy-status');
+            if (result.success && result.running) {
+                this.updateProxyStatus('running', result.port);
+                document.getElementById('start-proxy-btn').disabled = true;
+                document.getElementById('stop-proxy-btn').disabled = false;
+            } else {
+                this.updateProxyStatus('stopped');
+                document.getElementById('start-proxy-btn').disabled = false;
+                document.getElementById('stop-proxy-btn').disabled = true;
+            }
+        } catch (error) {
+        }
+    }
+
+    async startProxy() {
+        const port = document.getElementById('proxy-port').value;
+        const httpsEnabled = document.getElementById('proxy-https').checked;
+
+        try {
+            const result = await ipcRenderer.invoke('start-proxy', { port, httpsEnabled });
+            if (result.success) {
+                this.updateProxyStatus('running', port);
+                this.showToast('success', `${i18n.t('toast.proxy_started')} ${port}`);
+                document.getElementById('start-proxy-btn').disabled = true;
+                document.getElementById('stop-proxy-btn').disabled = false;
+            } else {
+                this.showToast('error', result.error);
+            }
+        } catch (error) {
+            this.showToast('error', `${i18n.t('toast.proxy_start_failed')}: ${error.message}`);
+        }
+    }
+
+    async stopProxy() {
+        try {
+            const result = await ipcRenderer.invoke('stop-proxy');
+            if (result.success) {
+                this.updateProxyStatus('stopped');
+                this.showToast('info', i18n.t('toast.proxy_stopped'));
+                document.getElementById('start-proxy-btn').disabled = false;
+                document.getElementById('stop-proxy-btn').disabled = true;
+            } else {
+                this.showToast('error', result.error);
+            }
+        } catch (error) {
+            this.showToast('error', `${i18n.t('toast.proxy_stop_failed')}: ${error.message}`);
+        }
+    }
+
+    updateProxyStatus(status, port = null) {
+        const statusElement = document.getElementById('proxy-status');
+        if (status === 'running') {
+            statusElement.innerHTML = `<span data-i18n="proxy.status_running">${i18n.t('proxy.status_running')} ${port}</span>`;
+            statusElement.className = 'status-info proxy-status running';
+        } else {
+            statusElement.innerHTML = `<span data-i18n="proxy.status_stopped">${i18n.t('proxy.status_stopped')}</span>`;
+            statusElement.className = 'status-info proxy-status stopped';
+        }
+    }
+
+    addCapturedToken(tokenData) {
+        this.capturedTokens.unshift(tokenData);
+        this.updateCapturedTokensList();
+    }
+
+    updateCapturedTokensList() {
+        const listContainer = document.getElementById('captured-tokens-list');
+        if (this.capturedTokens.length === 0) {
+            listContainer.innerHTML = `<p>${i18n.t('toast.no_captured_tokens')}</p>`;
+            return;
+        }
+
+        listContainer.innerHTML = '';
+        this.capturedTokens.forEach((tokenData, index) => {
+            const tokenItem = document.createElement('div');
+            tokenItem.className = 'token-item';
+            tokenItem.onclick = () => this.selectCapturedToken(index);
+            
+            const tokenPreview = document.createElement('div');
+            tokenPreview.className = 'token-preview';
+            tokenPreview.textContent = tokenData.token.substring(0, 100) + '...';
+            
+            const tokenMetadata = document.createElement('div');
+            tokenMetadata.className = 'token-metadata';
+            
+            const urlSpan = document.createElement('span');
+            urlSpan.innerHTML = '<i class="fas fa-globe"></i> ';
+            urlSpan.appendChild(document.createTextNode(tokenData.url));
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.innerHTML = '<i class="fas fa-clock"></i> ';
+            timeSpan.appendChild(document.createTextNode(new Date(tokenData.timestamp).toLocaleTimeString()));
+            
+            tokenMetadata.appendChild(urlSpan);
+            tokenMetadata.appendChild(timeSpan);
+            
+            tokenItem.appendChild(tokenPreview);
+            tokenItem.appendChild(tokenMetadata);
+            
+            listContainer.appendChild(tokenItem);
+        });
+    }
+
+    selectCapturedToken(index) {
+        const tokenData = this.capturedTokens[index];
+        if (tokenData) {
+            document.getElementById('jwt-input').value = tokenData.token;
+            this.showTab('decoder');
+            this.decodeToken();
+        }
+    }
+
+    initializeReplayAttack() {
+        this.replayActive = false;
+        this.replayResults = [];
+        this.setupReplayEventListeners();
+    }
+
+    setupReplayEventListeners() {
+        document.getElementById('start-replay-btn').addEventListener('click', () => {
+            this.startReplayAttack();
+        });
+
+        document.getElementById('stop-replay-btn').addEventListener('click', () => {
+            this.stopReplayAttack();
+        });
+    }
+
+    async startReplayAttack() {
+        const token = document.getElementById('replay-token').value.trim();
+        const url = document.getElementById('replay-url').value.trim();
+        const method = document.getElementById('replay-method').value;
+        const delay = parseInt(document.getElementById('replay-delay').value);
+        const count = parseInt(document.getElementById('replay-count').value);
+
+        if (!token) {
+            this.showToast('error', i18n.t('replay.token_placeholder'));
+            return;
+        }
+
+        if (!url) {
+            this.showToast('error', i18n.t('toast.provide_url'));
+            return;
+        }
+
+        this.replayActive = true;
+        this.replayResults = [];
+        
+        document.getElementById('start-replay-btn').disabled = true;
+        document.getElementById('stop-replay-btn').disabled = false;
+        document.getElementById('replay-results').style.display = 'block';
+
+        this.updateReplayProgress(0, count);
+        this.clearReplayLog();
+
+        for (let i = 0; i < count && this.replayActive; i++) {
+            try {
+                this.addReplayLogEntry('info', `Sending request ${i + 1}/${count}...`);
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = {
+                    requestNumber: i + 1,
+                    status: response.status,
+                    statusText: response.statusText,
+                    timestamp: new Date().toISOString()
+                };
+
+                this.replayResults.push(result);
+                this.addReplayLogEntry(
+                    response.ok ? 'success' : 'error',
+                    `Request ${i + 1}: ${response.status} ${response.statusText}`
+                );
+
+                this.updateReplayProgress(i + 1, count);
+                this.updateStatusCodes();
+
+                if (i < count - 1 && this.replayActive) {
+                    await this.sleep(delay);
+                }
+
+            } catch (error) {
+                this.addReplayLogEntry('error', `Request ${i + 1} failed: ${error.message}`);
+                this.replayResults.push({
+                    requestNumber: i + 1,
+                    status: 0,
+                    statusText: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        }
+
+        if (this.replayActive) {
+            this.addReplayLogEntry('info', 'Replay attack completed');
+        }
+
+        this.stopReplayAttack();
+    }
+
+    stopReplayAttack() {
+        this.replayActive = false;
+        document.getElementById('start-replay-btn').disabled = false;
+        document.getElementById('stop-replay-btn').disabled = true;
+    }
+
+    updateReplayProgress(current, total) {
+        document.getElementById('replay-progress-text').textContent = `${current}/${total}`;
+    }
+
+    updateStatusCodes() {
+        const statusCounts = {};
+        this.replayResults.forEach(result => {
+            const status = result.status || 'Error';
+            statusCounts[status] = (statusCounts[status] || 0) + 1;
+        });
+
+        const statusCodesContainer = document.getElementById('replay-status-codes');
+        statusCodesContainer.innerHTML = Object.entries(statusCounts)
+            .map(([status, count]) => `
+                <div class="status-code-item">
+                    <div class="count">${count}</div>
+                    <div class="code">${status}</div>
+                </div>
+            `).join('');
+    }
+
+    addReplayLogEntry(type, message) {
+        const logContainer = document.getElementById('replay-log');
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+        logContainer.appendChild(entry);
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    clearReplayLog() {
+        document.getElementById('replay-log').innerHTML = '';
+    }
+
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async exportCACertificate() {
+        try {
+            const result = await ipcRenderer.invoke('export-ca-certificate');
+            if (result.success) {
+                this.showToast('success', i18n.t('toast.ca_cert_exported'));
+            } else if (!result.canceled) {
+                this.showToast('error', result.error);
+            }
+        } catch (error) {
+            this.showToast('error', `${i18n.t('toast.ca_export_failed')}: ${error.message}`);
+        }
+    }
+
+    initializeTokenComparison() {
+        this.setupCompareEventListeners();
+    }
+
+    setupCompareEventListeners() {
+        document.getElementById('compare-tokens-btn').addEventListener('click', () => {
+            this.compareTokens();
+        });
+
+        document.getElementById('clear-compare-btn').addEventListener('click', () => {
+            this.clearComparison();
+        });
+
+        document.getElementById('compare-token-a').addEventListener('input', () => {
+            this.decodeCompareToken('a');
+        });
+
+        document.getElementById('compare-token-b').addEventListener('input', () => {
+            this.decodeCompareToken('b');
+        });
+    }
+
+    decodeCompareToken(side) {
+        const token = document.getElementById(`compare-token-${side}`).value.trim();
+        const container = document.getElementById(`compare-decoded-${side}`);
+
+        if (!token) {
+            container.innerHTML = '';
+            return;
+        }
+
+        try {
+            const decoded = jwt.decode(token, { complete: true });
+            if (decoded) {
+                container.innerHTML = '';
+                
+                const headerSection = document.createElement('div');
+                headerSection.className = 'decoded-section';
+                headerSection.innerHTML = '<h4>Header:</h4>';
+                const headerPre = document.createElement('pre');
+                headerPre.textContent = JSON.stringify(decoded.header, null, 2);
+                headerSection.appendChild(headerPre);
+                
+                const payloadSection = document.createElement('div');
+                payloadSection.className = 'decoded-section';
+                payloadSection.innerHTML = '<h4>Payload:</h4>';
+                const payloadPre = document.createElement('pre');
+                payloadPre.textContent = JSON.stringify(decoded.payload, null, 2);
+                payloadSection.appendChild(payloadPre);
+                
+                container.appendChild(headerSection);
+                container.appendChild(payloadSection);
+            }
+        } catch (error) {
+            container.innerHTML = '';
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = `Invalid JWT token: ${error.message}`;
+            container.appendChild(errorDiv);
+        }
+    }
+
+    compareTokens() {
+        const tokenA = document.getElementById('compare-token-a').value.trim();
+        const tokenB = document.getElementById('compare-token-b').value.trim();
+
+        if (!tokenA || !tokenB) {
+            this.showToast('error', i18n.t('toast.provide_both_tokens'));
+            return;
+        }
+
+        try {
+            const decodedA = jwt.decode(tokenA, { complete: true });
+            const decodedB = jwt.decode(tokenB, { complete: true });
+
+            if (!decodedA || !decodedB) {
+                this.showToast('error', i18n.t('toast.invalid_tokens'));
+                return;
+            }
+
+            const differences = this.findTokenDifferences(decodedA, decodedB);
+            this.displayTokenDifferences(differences);
+
+        } catch (error) {
+            this.showToast('error', `${i18n.t('toast.comparison_failed')}: ${error.message}`);
+        }
+    }
+
+    findTokenDifferences(tokenA, tokenB) {
+        const differences = {
+            header: this.compareObjects(tokenA.header, tokenB.header),
+            payload: this.compareObjects(tokenA.payload, tokenB.payload),
+            signature: tokenA.signature !== tokenB.signature
+        };
+
+        return differences;
+    }
+
+    compareObjects(objA, objB) {
+        const diffs = [];
+        const allKeys = new Set([...Object.keys(objA || {}), ...Object.keys(objB || {})]);
+
+        allKeys.forEach(key => {
+            const valueA = objA?.[key];
+            const valueB = objB?.[key];
+
+            if (valueA === undefined && valueB !== undefined) {
+                diffs.push({ key, type: 'added', valueB });
+            } else if (valueA !== undefined && valueB === undefined) {
+                diffs.push({ key, type: 'removed', valueA });
+            } else if (JSON.stringify(valueA) !== JSON.stringify(valueB)) {
+                diffs.push({ key, type: 'modified', valueA, valueB });
+            }
+        });
+
+        return diffs;
+    }
+
+    displayTokenDifferences(differences) {
+        const resultsContainer = document.getElementById('compare-diff-results');
+        const summaryContainer = document.getElementById('compare-diff-summary');
+        const detailsContainer = document.getElementById('compare-diff-details');
+
+        const headerDiffCount = differences.header.length;
+        const payloadDiffCount = differences.payload.length;
+        const signatureDiff = differences.signature ? 1 : 0;
+        const totalDiffs = headerDiffCount + payloadDiffCount + signatureDiff;
+
+        summaryContainer.innerHTML = `
+            <div class="diff-stat">
+                <div class="number">${totalDiffs}</div>
+                <div class="label">Total Differences</div>
+            </div>
+            <div class="diff-stat">
+                <div class="number">${headerDiffCount}</div>
+                <div class="label">Header</div>
+            </div>
+            <div class="diff-stat">
+                <div class="number">${payloadDiffCount}</div>
+                <div class="label">Payload</div>
+            </div>
+            <div class="diff-stat">
+                <div class="number">${signatureDiff}</div>
+                <div class="label">Signature</div>
+            </div>
+        `;
+
+        let detailsHtml = '';
+
+        if (headerDiffCount > 0) {
+            detailsHtml += this.renderDiffSection('Header', differences.header);
+        }
+
+        if (payloadDiffCount > 0) {
+            detailsHtml += this.renderDiffSection('Payload', differences.payload);
+        }
+
+        if (differences.signature) {
+            detailsHtml += `
+                <div class="diff-section">
+                    <div class="diff-section-title">Signature Differences</div>
+                    <div class="diff-item modified">
+                        <div class="diff-key">Signature</div>
+                        <div>Signatures are different</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        if (totalDiffs === 0) {
+            detailsHtml = '<div class="diff-section"><p>Tokens are identical</p></div>';
+        }
+
+        detailsContainer.innerHTML = detailsHtml;
+        resultsContainer.style.display = 'block';
+    }
+
+    renderDiffSection(title, diffs) {
+        return `
+            <div class="diff-section">
+                <div class="diff-section-title">${title} Differences</div>
+                ${diffs.map(diff => `
+                    <div class="diff-item ${diff.type}">
+                        <div class="diff-key">${diff.key}</div>
+                        <div class="diff-values">
+                            ${diff.type === 'added' ? `<div class="diff-value-new">+ ${JSON.stringify(diff.valueB)}</div>` : ''}
+                            ${diff.type === 'removed' ? `<div class="diff-value-old">- ${JSON.stringify(diff.valueA)}</div>` : ''}
+                            ${diff.type === 'modified' ? `
+                                <div class="diff-value-old">- ${JSON.stringify(diff.valueA)}</div>
+                                <div class="diff-value-new">+ ${JSON.stringify(diff.valueB)}</div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    clearComparison() {
+        document.getElementById('compare-token-a').value = '';
+        document.getElementById('compare-token-b').value = '';
+        document.getElementById('compare-decoded-a').innerHTML = '';
+        document.getElementById('compare-decoded-b').innerHTML = '';
+        document.getElementById('compare-diff-results').style.display = 'none';
     }
 }
 

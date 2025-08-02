@@ -51,60 +51,96 @@
             <nav class="sidebar">
                 <div class="sidebar-content">
                     <div class="nav-section">
-                        <div class="nav-item active" data-tab="decoder">
-                            <i class="fas fa-unlock"></i>
-                            <span data-i18n="nav.decoder">JWT Decoder</span>
-                            <div class="nav-tooltip" data-i18n="nav.decoder.tooltip">Decode and analyze JWT tokens</div>
+                        <div class="nav-section-header" data-section="core">
+                            <i class="fas fa-key section-icon"></i>
+                            <span class="section-title" data-i18n="nav.core_tools">JWT TOOLS</span>
+                            <i class="fas fa-chevron-down section-toggle"></i>
                         </div>
-                        <div class="nav-item" data-tab="encoder">
-                            <i class="fas fa-lock"></i>
-                            <span data-i18n="nav.encoder">JWT Encoder</span>
-                            <div class="nav-tooltip" data-i18n="nav.encoder.tooltip">Create custom JWT tokens</div>
-                        </div>
-                        <div class="nav-item" data-tab="security">
-                            <i class="fas fa-bug"></i>
-                            <span data-i18n="nav.security">Security Analysis</span>
-                            <div class="nav-tooltip" data-i18n="nav.security.tooltip">Vulnerability detection and analysis</div>
-                        </div>
-                        <div class="nav-item" data-tab="attacks">
-                            <i class="fas fa-crosshairs"></i>
-                            <span data-i18n="nav.attacks">Attack Vectors</span>
-                            <div class="nav-tooltip" data-i18n="nav.attacks.tooltip">Generate attack payloads</div>
-                        </div>
-                        <div class="nav-item" data-tab="bruteforce">
-                            <i class="fas fa-hammer"></i>
-                            <span data-i18n="nav.bruteforce">Brute Force</span>
-                            <div class="nav-tooltip" data-i18n="nav.bruteforce.tooltip">Crack weak secrets</div>
-                        </div>
-                        <div class="nav-item" data-tab="keygen">
-                            <i class="fas fa-cogs"></i>
-                            <span data-i18n="nav.keygen">Key Generator</span>
-                            <div class="nav-tooltip" data-i18n="nav.keygen.tooltip">Generate RSA/HMAC keys</div>
-                        </div>
-                        <div class="nav-item" data-tab="validator">
-                            <i class="fas fa-check-circle"></i>
-                            <span data-i18n="nav.validator">Token Validator</span>
-                            <div class="nav-tooltip" data-i18n="nav.validator.tooltip">Verify token integrity</div>
+                        <div class="nav-section-content expanded">
+                            <div class="nav-item active" data-tab="decoder">
+                                <i class="fas fa-unlock"></i>
+                                <span data-i18n="nav.decoder">Decoder</span>
+                            </div>
+                            <div class="nav-item" data-tab="encoder">
+                                <i class="fas fa-lock"></i>
+                                <span data-i18n="nav.encoder">Encoder</span>
+                            </div>
+                            <div class="nav-item" data-tab="validator">
+                                <i class="fas fa-check-circle"></i>
+                                <span data-i18n="nav.validator">Validator</span>
+                            </div>
+                            <div class="nav-item" data-tab="compare">
+                                <i class="fas fa-exchange-alt"></i>
+                                <span data-i18n="nav.compare">Compare</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="nav-section">
-                        <div class="nav-section-title" data-i18n="nav.utilities">UTILITIES</div>
-                        <div class="nav-item" data-tab="http-tester">
-                            <i class="fas fa-globe"></i>
-                            <span data-i18n="nav.http_tester">HTTP Tester</span>
-                            <div class="nav-tooltip" data-i18n="nav.http_tester.tooltip">Test JWT tokens in requests</div>
+                        <div class="nav-section-header collapsed" data-section="security">
+                            <i class="fas fa-shield-alt section-icon"></i>
+                            <span class="section-title" data-i18n="nav.security_tools">SECURITY</span>
+                            <i class="fas fa-chevron-down section-toggle"></i>
                         </div>
-                        <div class="nav-item" data-tab="base64">
-                            <i class="fas fa-code"></i>
-                            <span data-i18n="nav.base64">Base64 Tools</span>
-                            <div class="nav-tooltip" data-i18n="nav.base64.tooltip">Encode/decode Base64</div>
+                        <div class="nav-section-content">
+                            <div class="nav-item" data-tab="security">
+                                <i class="fas fa-bug"></i>
+                                <span data-i18n="nav.security">Analysis</span>
+                            </div>
+                            <div class="nav-item" data-tab="attacks">
+                                <i class="fas fa-crosshairs"></i>
+                                <span data-i18n="nav.attacks">Attacks</span>
+                            </div>
+                            <div class="nav-item" data-tab="bruteforce">
+                                <i class="fas fa-hammer"></i>
+                                <span data-i18n="nav.bruteforce">Brute Force</span>
+                            </div>
+                            <div class="nav-item" data-tab="replay">
+                                <i class="fas fa-redo"></i>
+                                <span data-i18n="nav.replay">Replay</span>
+                            </div>
                         </div>
-                        <div class="nav-item" data-tab="help">
-                            <i class="fas fa-question-circle"></i>
-                            <span data-i18n="nav.help">Help</span>
-                            <div class="nav-tooltip" data-i18n="nav.help.tooltip">Usage guide and documentation</div>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-section-header collapsed" data-section="network">
+                            <i class="fas fa-network-wired section-icon"></i>
+                            <span class="section-title" data-i18n="nav.network_tools">NETWORK</span>
+                            <i class="fas fa-chevron-down section-toggle"></i>
                         </div>
+                        <div class="nav-section-content">
+                            <div class="nav-item" data-tab="proxy">
+                                <i class="fas fa-network-wired"></i>
+                                <span data-i18n="nav.proxy">Proxy</span>
+                            </div>
+                            <div class="nav-item" data-tab="http-tester">
+                                <i class="fas fa-globe"></i>
+                                <span data-i18n="nav.http_tester">HTTP Test</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-section-header collapsed" data-section="utils">
+                            <i class="fas fa-tools section-icon"></i>
+                            <span class="section-title" data-i18n="nav.utilities">UTILS</span>
+                            <i class="fas fa-chevron-down section-toggle"></i>
+                        </div>
+                        <div class="nav-section-content">
+                            <div class="nav-item" data-tab="keygen">
+                                <i class="fas fa-cogs"></i>
+                                <span data-i18n="nav.keygen">Key Gen</span>
+                            </div>
+                            <div class="nav-item" data-tab="base64">
+                                <i class="fas fa-code"></i>
+                                <span data-i18n="nav.base64">Base64</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nav-item standalone" data-tab="help">
+                        <i class="fas fa-question-circle"></i>
+                        <span data-i18n="nav.help">Help</span>
                     </div>
                 </div>
             </nav>
@@ -965,26 +1001,38 @@
                                 <h3><i class="fas fa-rocket"></i> <span data-i18n="help.getting_started">Getting Started</span></h3>
                             </div>
                             <div class="card-body">
-                                <ol>
-                                    <li data-i18n="help.step1">Start with the JWT Decoder to analyze existing tokens and understand their structure</li>
-                                    <li data-i18n="help.step2">Use the JWT Encoder to create custom tokens with your own header, payload, and signature</li>
-                                    <li data-i18n="help.step3">Run Security Analysis to identify potential vulnerabilities in your tokens</li>
-                                    <li data-i18n="help.step4">Generate Attack Vectors to test your application's JWT implementation</li>
-                                    <li data-i18n="help.step5">Use Brute Force to test the strength of HMAC secrets</li>
-                                    <li data-i18n="help.step6">Generate secure keys with the Key Generator for production use</li>
-                                </ol>
+                                <div class="help-steps">
+                                    <div class="help-step">
+                                        <span data-i18n="help.step1">1. Start with the JWT Decoder to analyze existing tokens and understand their structure</span>
+                                    </div>
+                                    <div class="help-step">
+                                        <span data-i18n="help.step2">2. Use the JWT Encoder to create custom tokens with your own header, payload, and signature</span>
+                                    </div>
+                                    <div class="help-step">
+                                        <span data-i18n="help.step3">3. Run Security Analysis to identify potential vulnerabilities in your tokens</span>
+                                    </div>
+                                    <div class="help-step">
+                                        <span data-i18n="help.step4">4. Generate Attack Vectors to test your application's JWT implementation</span>
+                                    </div>
+                                    <div class="help-step">
+                                        <span data-i18n="help.step5">5. Use Brute Force to test the strength of HMAC secrets</span>
+                                    </div>
+                                    <div class="help-step">
+                                        <span data-i18n="help.step6">6. Generate secure keys with the Key Generator for production use</span>
+                                    </div>
+                                </div>
 
                                 <h4 data-i18n="help.key_features">Key Features:</h4>
-                                <ul>
-                                    <li data-i18n="help.feature1">Comprehensive JWT token decoding and analysis</li>
-                                    <li data-i18n="help.feature2">Custom token generation with multiple algorithms</li>
-                                    <li data-i18n="help.feature3">Advanced security vulnerability detection</li>
-                                    <li data-i18n="help.feature4">16+ attack vector generators for penetration testing</li>
-                                    <li data-i18n="help.feature5">Dictionary-based secret brute forcing</li>
-                                    <li data-i18n="help.feature6">Secure HMAC and RSA key generation</li>
-                                    <li data-i18n="help.feature7">Token signature validation and verification</li>
-                                    <li data-i18n="help.feature8">HTTP request testing with JWT tokens</li>
-                                </ul>
+                                <div class="feature-list">
+                                    <div class="feature-item" data-i18n="help.feature1">Comprehensive JWT token decoding and analysis</div>
+                                    <div class="feature-item" data-i18n="help.feature2">Custom token generation with multiple algorithms</div>
+                                    <div class="feature-item" data-i18n="help.feature3">Advanced security vulnerability detection</div>
+                                    <div class="feature-item" data-i18n="help.feature4">16+ attack vector generators for penetration testing</div>
+                                    <div class="feature-item" data-i18n="help.feature5">Dictionary-based secret brute forcing</div>
+                                    <div class="feature-item" data-i18n="help.feature6">Secure HMAC and RSA key generation</div>
+                                    <div class="feature-item" data-i18n="help.feature7">Token signature validation and verification</div>
+                                    <div class="feature-item" data-i18n="help.feature8">HTTP request testing with JWT tokens</div>
+                                </div>
                             </div>
                         </div>
 
@@ -1020,12 +1068,12 @@
 
                                 <div class="algorithm-notes">
                                     <h4 data-i18n="help.algorithm_notes">Algorithm Notes:</h4>
-                                    <ul>
-                                        <li data-i18n="help.algorithm_note1">HMAC algorithms use symmetric keys (shared secret)</li>
-                                        <li data-i18n="help.algorithm_note2">RSA algorithms use asymmetric keys (private/public key pairs)</li>
-                                        <li data-i18n="help.algorithm_note3">The "none" algorithm disables signature verification (dangerous!)</li>
-                                        <li data-i18n="help.algorithm_note4">Higher bit lengths (384, 512) provide stronger security</li>
-                                    </ul>
+                                    <div class="feature-list">
+                                        <div class="feature-item" data-i18n="help.algorithm_note1">HMAC algorithms use symmetric keys (shared secret)</div>
+                                        <div class="feature-item" data-i18n="help.algorithm_note2">RSA algorithms use asymmetric keys (private/public key pairs)</div>
+                                        <div class="feature-item" data-i18n="help.algorithm_note3">The "none" algorithm disables signature verification (dangerous!)</div>
+                                        <div class="feature-item" data-i18n="help.algorithm_note4">Higher bit lengths (384, 512) provide stronger security</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1156,6 +1204,26 @@
                                     </div>
 
                                     <div class="tool-item">
+                                        <h5 data-i18n="help.attacks_help">Attack Vectors:</h5>
+                                        <p data-i18n="help.attacks_desc">Generate 16+ different attack payloads to test JWT vulnerabilities including algorithm confusion, JWK injection, and parameter pollution.</p>
+                                    </div>
+
+                                    <div class="tool-item">
+                                        <h5 data-i18n="help.proxy_help">Network Proxy:</h5>
+                                        <p data-i18n="help.proxy_desc">Intercept HTTP/HTTPS traffic to capture JWT tokens from live network requests. Supports SSL/TLS decryption with CA certificate installation.</p>
+                                    </div>
+
+                                    <div class="tool-item">
+                                        <h5 data-i18n="help.replay_help">Replay Attack Simulator:</h5>
+                                        <p data-i18n="help.replay_desc">Test JWT tokens for replay vulnerabilities by sending multiple requests with the same token to target endpoints.</p>
+                                    </div>
+
+                                    <div class="tool-item">
+                                        <h5 data-i18n="help.compare_help">Token Comparison:</h5>
+                                        <p data-i18n="help.compare_desc">Compare two JWT tokens side-by-side to identify differences in headers, payload claims, and signatures.</p>
+                                    </div>
+
+                                    <div class="tool-item">
                                         <h5 data-i18n="help.http_tester_help">HTTP Tester:</h5>
                                         <p data-i18n="help.http_tester_desc">Test JWT tokens in real HTTP requests. Configure headers, body, and authorization to see how tokens behave in API calls.</p>
                                     </div>
@@ -1163,6 +1231,40 @@
                                     <div class="tool-item">
                                         <h5 data-i18n="help.base64_tools_help">Base64 Tools:</h5>
                                         <p data-i18n="help.base64_tools_desc">Encode plain text to Base64 or decode Base64 strings back to plain text. Useful for manually crafting JWT components.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card help-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-keyboard"></i> <span data-i18n="help.keyboard_shortcuts">Keyboard Shortcuts</span></h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="shortcuts-list">
+                                    <div class="shortcut-item">
+                                        <kbd>1-8</kbd>
+                                        <span data-i18n="help.shortcut_switch_tabs">Switch between main sections</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Ctrl/Cmd</kbd> + <kbd>V</kbd>
+                                        <span data-i18n="help.shortcut_paste_token">Paste JWT token to decode</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Ctrl/Cmd</kbd> + <kbd>Enter</kbd>
+                                        <span data-i18n="help.shortcut_analyze">Start security analysis</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Ctrl/Cmd</kbd> + <kbd>C</kbd>
+                                        <span data-i18n="help.shortcut_copy">Copy generated tokens or keys</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Escape</kbd>
+                                        <span data-i18n="help.shortcut_cancel">Cancel brute force attack</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>F5</kbd>
+                                        <span data-i18n="help.shortcut_refresh">Clear current tab content</span>
                                     </div>
                                 </div>
                             </div>
@@ -1192,6 +1294,195 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="proxy-tab">
+                    <div class="page-header">
+                        <h2><i class="fas fa-network-wired"></i> <span data-i18n="proxy.title">Network Proxy</span></h2>
+                        <p data-i18n="proxy.subtitle">Extract JWT tokens from HTTP traffic</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-globe"></i> <span data-i18n="proxy.settings">Proxy Settings</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="proxy-port">
+                                    <i class="fas fa-network-wired"></i> <span data-i18n="proxy.port">Proxy Port</span>
+                                </label>
+                                <input type="number" id="proxy-port" value="8080" min="1024" max="65535">
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="proxy-https">
+                                    <span class="checkbox-custom"></span>
+                                    <span data-i18n="proxy.enable_https">Enable HTTPS Interception</span>
+                                </label>
+                            </div>
+                            <div class="alert alert-info" id="https-info" style="display:none;">
+                                <i class="fas fa-info-circle"></i>
+                                <span data-i18n="proxy.https_info">For HTTPS interception, export and install the CA certificate in your browser's trusted certificate store.</span>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-primary" id="start-proxy-btn">
+                                    <i class="fas fa-play"></i> <span data-i18n="proxy.start">Start Proxy</span>
+                                </button>
+                                <button class="btn btn-danger" id="stop-proxy-btn" disabled>
+                                    <i class="fas fa-stop"></i> <span data-i18n="proxy.stop">Stop Proxy</span>
+                                </button>
+                                <button class="btn btn-secondary" id="export-ca-btn">
+                                    <i class="fas fa-certificate"></i> <span data-i18n="proxy.export_ca">Export CA Certificate</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-list"></i> <span data-i18n="proxy.captured_tokens">Captured JWT Tokens</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="proxy-status" class="status-info">
+                                <span data-i18n="proxy.status_stopped">Proxy Status: Stopped</span>
+                            </div>
+                            <div id="captured-tokens-list" class="tokens-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="replay-tab">
+                    <div class="page-header">
+                        <h2><i class="fas fa-redo"></i> <span data-i18n="replay.title">Replay Attack Simulation</span></h2>
+                        <p data-i18n="replay.subtitle">Test token replay attack vulnerabilities</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-cog"></i> <span data-i18n="replay.configuration">Attack Configuration</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="replay-token">
+                                    <i class="fas fa-key"></i> <span data-i18n="replay.target_token">Target JWT Token</span>
+                                </label>
+                                <textarea id="replay-token" rows="3" data-i18n-placeholder="replay.token_placeholder"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="replay-url">
+                                    <i class="fas fa-link"></i> <span data-i18n="replay.target_url">Target URL</span>
+                                </label>
+                                <input type="url" id="replay-url" data-i18n-placeholder="replay.url_placeholder">
+                            </div>
+                            <div class="form-group">
+                                <label for="replay-method">
+                                    <i class="fas fa-arrow-right"></i> <span data-i18n="replay.http_method">HTTP Method</span>
+                                </label>
+                                <select id="replay-method">
+                                    <option value="GET">GET</option>
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="DELETE">DELETE</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="replay-delay">
+                                    <i class="fas fa-clock"></i> <span data-i18n="replay.delay">Delay Between Requests (ms)</span>
+                                </label>
+                                <input type="number" id="replay-delay" value="1000" min="100" max="10000">
+                            </div>
+                            <div class="form-group">
+                                <label for="replay-count">
+                                    <i class="fas fa-repeat"></i> <span data-i18n="replay.request_count">Number of Requests</span>
+                                </label>
+                                <input type="number" id="replay-count" value="10" min="1" max="100">
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-primary" id="start-replay-btn">
+                                    <i class="fas fa-play"></i> <span data-i18n="replay.start_attack">Start Replay Attack</span>
+                                </button>
+                                <button class="btn btn-danger" id="stop-replay-btn" disabled>
+                                    <i class="fas fa-stop"></i> <span data-i18n="replay.stop_attack">Stop Attack</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="replay-results" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> <span data-i18n="replay.results">Attack Results</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="replay-progress" class="progress-info">
+                                <span data-i18n="replay.progress">Progress:</span>
+                                <span id="replay-progress-text">0/0</span>
+                            </div>
+                            <div id="replay-status-codes" class="status-codes"></div>
+                            <div id="replay-log" class="attack-log"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="compare-tab">
+                    <div class="page-header">
+                        <h2><i class="fas fa-exchange-alt"></i> <span data-i18n="compare.title">Token Comparison</span></h2>
+                        <p data-i18n="compare.subtitle">Compare JWT tokens side by side to identify differences</p>
+                    </div>
+
+                    <div class="compare-container">
+                        <div class="compare-panel">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3><i class="fas fa-file"></i> <span data-i18n="compare.token_a">Token A</span></h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="compare-token-a">
+                                            <i class="fas fa-key"></i> <span data-i18n="compare.jwt_token">JWT Token</span>
+                                        </label>
+                                        <textarea id="compare-token-a" rows="4" data-i18n-placeholder="compare.token_placeholder"></textarea>
+                                    </div>
+                                    <div id="compare-decoded-a" class="decoded-token"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="compare-controls">
+                            <button class="btn btn-primary" id="compare-tokens-btn">
+                                <i class="fas fa-search"></i> <span data-i18n="compare.compare">Compare</span>
+                            </button>
+                            <button class="btn btn-outline" id="clear-compare-btn">
+                                <i class="fas fa-trash"></i> <span data-i18n="compare.clear">Clear</span>
+                            </button>
+                        </div>
+
+                        <div class="compare-panel">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3><i class="fas fa-file"></i> <span data-i18n="compare.token_b">Token B</span></h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="compare-token-b">
+                                            <i class="fas fa-key"></i> <span data-i18n="compare.jwt_token">JWT Token</span>
+                                        </label>
+                                        <textarea id="compare-token-b" rows="4" data-i18n-placeholder="compare.token_placeholder"></textarea>
+                                    </div>
+                                    <div id="compare-decoded-b" class="decoded-token"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="compare-diff-results" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-pie"></i> <span data-i18n="compare.differences">Differences</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="compare-diff-summary" class="diff-summary"></div>
+                            <div id="compare-diff-details" class="diff-details"></div>
                         </div>
                     </div>
                 </div>

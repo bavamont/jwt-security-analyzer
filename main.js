@@ -5,9 +5,21 @@ const fs = require('fs').promises;
 const fsSync = require('fs');
 const os = require('os');
 const crypto = require('crypto');
+const http = require('http');
+const https = require('https');
+const net = require('net');
+const tls = require('tls');
+const url = require('url');
+const httpProxy = require('http-proxy');
+const { Readable } = require('stream');
+const forge = require('node-forge');
 
 let mainWindow;
 let updateDownloaded = false;
+let proxyServer = null;
+let caKey = null;
+let caCert = null;
+const certCache = new Map();
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -67,28 +79,24 @@ function setupAutoUpdater() {
     autoUpdater.checkForUpdatesAndNotify();
 
     autoUpdater.on('checking-for-update', () => {
-        console.log('Checking for update...');
         if (mainWindow) {
             mainWindow.webContents.send('update-checking');
         }
     });
 
     autoUpdater.on('update-available', (info) => {
-        console.log('Update available:', info);
         if (mainWindow) {
             mainWindow.webContents.send('update-available', info);
         }
     });
 
     autoUpdater.on('update-not-available', (info) => {
-        console.log('Update not available:', info);
         if (mainWindow) {
             mainWindow.webContents.send('update-not-available', info);
         }
     });
 
     autoUpdater.on('error', (err) => {
-        console.error('Update error:', err);
         if (mainWindow) {
             mainWindow.webContents.send('update-error', err);
         }
@@ -101,7 +109,6 @@ function setupAutoUpdater() {
     });
 
     autoUpdater.on('update-downloaded', (info) => {
-        console.log('Update downloaded:', info);
         updateDownloaded = true;
         if (mainWindow) {
             mainWindow.webContents.send('update-downloaded', info);
@@ -117,17 +124,14 @@ function checkForUpdates() {
     try {
         autoUpdater.checkForUpdatesAndNotify();
     } catch (error) {
-        console.error('Error checking for updates:', error);
     }
 }
 
-// Auto-updater IPC handlers
 ipcMain.handle('check-for-updates', async () => {
     try {
         const result = await autoUpdater.checkForUpdates();
         return { success: true, updateInfo: result };
     } catch (error) {
-        console.error('Error checking for updates:', error);
         return { success: false, error: error.message };
     }
 });
@@ -137,7 +141,6 @@ ipcMain.handle('download-update', async () => {
         await autoUpdater.downloadUpdate();
         return { success: true };
     } catch (error) {
-        console.error('Error downloading update:', error);
         return { success: false, error: error.message };
     }
 });
@@ -151,7 +154,6 @@ ipcMain.handle('install-update', async () => {
             return { success: false, error: 'No update downloaded' };
         }
     } catch (error) {
-        console.error('Error installing update:', error);
         return { success: false, error: error.message };
     }
 });
@@ -169,7 +171,6 @@ ipcMain.handle('get-update-info', async () => {
     }
 });
 
-// Window control IPC handlers
 ipcMain.handle('window-minimize', () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.minimize();
@@ -199,7 +200,6 @@ ipcMain.handle('window-is-maximized', () => {
     return mainWindow && !mainWindow.isDestroyed() ? mainWindow.isMaximized() : false;
 });
 
-// File system IPC handlers
 ipcMain.handle('load-file', async (event, filters) => {
     try {
         const { filePaths, canceled } = await dialog.showOpenDialog(mainWindow, {
@@ -223,7 +223,6 @@ ipcMain.handle('load-file', async (event, filters) => {
         }
         return { success: false, cancelled: true };
     } catch (error) {
-        console.error('Error loading file:', error);
         return { success: false, error: error.message };
     }
 });
@@ -252,12 +251,10 @@ ipcMain.handle('save-file', async (event, content, defaultPath = null, filters =
         await fs.writeFile(filePath, content, 'utf8');
         return { success: true, path: filePath };
     } catch (error) {
-        console.error('Error saving file:', error);
         return { success: false, error: error.message };
     }
 });
 
-// Wordlist handling
 ipcMain.handle('load-wordlist', async (event) => {
     try {
         const { filePaths, canceled } = await dialog.showOpenDialog(mainWindow, {
@@ -286,7 +283,6 @@ ipcMain.handle('load-wordlist', async (event) => {
             count: words.length
         };
     } catch (error) {
-        console.error('Error loading wordlist:', error);
         return { success: false, error: error.message };
     }
 });
@@ -314,12 +310,10 @@ ipcMain.handle('save-wordlist', async (event, wordlist, filename = null) => {
 
         return { success: true, path: filePath };
     } catch (error) {
-        console.error('Error saving wordlist:', error);
         return { success: false, error: error.message };
     }
 });
 
-// System information
 ipcMain.handle('get-system-language', async () => {
     try {
         const locale = app.getLocale();
@@ -335,7 +329,6 @@ ipcMain.handle('get-system-language', async () => {
             systemLanguages: app.getPreferredSystemLanguages()
         };
     } catch (error) {
-        console.error('Error getting system language:', error);
         return { success: false, error: error.message, language: 'en' };
     }
 });
@@ -361,12 +354,10 @@ ipcMain.handle('get-system-info', async () => {
             appName: app.getName()
         };
     } catch (error) {
-        console.error('Error getting system info:', error);
         return { success: false, error: error.message };
     }
 });
 
-// Settings management
 ipcMain.handle('save-settings', async (event, settings, filePath = null) => {
     try {
         let savePath = filePath;
@@ -398,7 +389,6 @@ ipcMain.handle('save-settings', async (event, settings, filePath = null) => {
         await fs.writeFile(savePath, JSON.stringify(settingsData, null, 2), 'utf8');
         return { success: true, path: savePath };
     } catch (error) {
-        console.error('Error saving settings:', error);
         return { success: false, error: error.message };
     }
 });
@@ -437,12 +427,10 @@ ipcMain.handle('load-settings', async (event, filePath = null) => {
             timestamp: settingsData.timestamp
         };
     } catch (error) {
-        console.error('Error loading settings:', error);
         return { success: false, error: error.message };
     }
 });
 
-// Utility functions
 ipcMain.handle('check-path-exists', async (event, filePath) => {
     try {
         const stats = await fs.stat(filePath);
@@ -463,7 +451,6 @@ ipcMain.handle('open-external', async (event, url) => {
         await shell.openExternal(url);
         return { success: true };
     } catch (error) {
-        console.error('Error opening external URL:', error);
         return { success: false, error: error.message };
     }
 });
@@ -473,7 +460,6 @@ ipcMain.handle('generate-secure-token', async (event, length = 32) => {
         const token = crypto.randomBytes(length).toString('hex');
         return { success: true, token };
     } catch (error) {
-        console.error('Error generating secure token:', error);
         return { success: false, error: error.message };
     }
 });
@@ -483,12 +469,10 @@ ipcMain.handle('hash-string', async (event, input, algorithm = 'sha256') => {
         const hash = crypto.createHash(algorithm).update(input).digest('hex');
         return { success: true, hash };
     } catch (error) {
-        console.error('Error hashing string:', error);
         return { success: false, error: error.message };
     }
 });
 
-// Dialog helpers
 ipcMain.handle('show-error-dialog', async (event, title, message, detail = null) => {
     try {
         const options = {
@@ -505,7 +489,6 @@ ipcMain.handle('show-error-dialog', async (event, title, message, detail = null)
         await dialog.showMessageBox(mainWindow, options);
         return { success: true };
     } catch (error) {
-        console.error('Error showing error dialog:', error);
         return { success: false, error: error.message };
     }
 });
@@ -526,7 +509,6 @@ ipcMain.handle('show-info-dialog', async (event, title, message, detail = null) 
         await dialog.showMessageBox(mainWindow, options);
         return { success: true };
     } catch (error) {
-        console.error('Error showing info dialog:', error);
         return { success: false, error: error.message };
     }
 });
@@ -549,7 +531,6 @@ ipcMain.handle('show-warning-dialog', async (event, title, message, buttons = ['
             buttonClicked: buttons[result.response]
         };
     } catch (error) {
-        console.error('Error showing warning dialog:', error);
         return { success: false, error: error.message };
     }
 });
@@ -573,7 +554,6 @@ ipcMain.handle('show-question-dialog', async (event, title, message, buttons = [
             canceled: result.response === buttons.length - 1
         };
     } catch (error) {
-        console.error('Error showing question dialog:', error);
         return { success: false, error: error.message };
     }
 });
@@ -601,10 +581,588 @@ ipcMain.handle('show-info', async (event, title, message) => {
     return { success: true };
 });
 
-// Error handling
-process.on('uncaughtException', (error) => {
-    console.error('Uncaught Exception:', error);
+function generateRootCA() {
+    const keys = forge.pki.rsa.generateKeyPair(2048);
+    const cert = forge.pki.createCertificate();
+    
+    cert.publicKey = keys.publicKey;
+    cert.serialNumber = '01';
+    cert.validity.notBefore = new Date();
+    cert.validity.notAfter = new Date();
+    cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 10);
+    
+    const attrs = [{
+        name: 'commonName',
+        value: 'JWT Security Analyzer CA'
+    }, {
+        name: 'countryName',
+        value: 'US'
+    }, {
+        shortName: 'ST',
+        value: 'CA'
+    }, {
+        name: 'localityName',
+        value: 'San Francisco'
+    }, {
+        name: 'organizationName',
+        value: 'JWT Security Analyzer'
+    }, {
+        shortName: 'OU',
+        value: 'Certificate Authority'
+    }];
+    
+    cert.setSubject(attrs);
+    cert.setIssuer(attrs);
+    cert.setExtensions([{
+        name: 'basicConstraints',
+        cA: true
+    }, {
+        name: 'keyUsage',
+        keyCertSign: true,
+        digitalSignature: true,
+        nonRepudiation: true,
+        keyEncipherment: true,
+        dataEncipherment: true
+    }]);
+    
+    cert.sign(keys.privateKey, forge.md.sha256.create());
+    
+    return {
+        key: keys.privateKey,
+        cert: cert
+    };
+}
 
+function generateServerCertificate(hostname) {
+    if (certCache.has(hostname)) {
+        return certCache.get(hostname);
+    }
+    
+    const keys = forge.pki.rsa.generateKeyPair(2048);
+    const cert = forge.pki.createCertificate();
+    
+    cert.publicKey = keys.publicKey;
+    cert.serialNumber = Date.now().toString();
+    cert.validity.notBefore = new Date();
+    cert.validity.notAfter = new Date();
+    cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 1);
+    
+    const attrs = [{
+        name: 'commonName',
+        value: hostname
+    }, {
+        name: 'countryName',
+        value: 'US'
+    }, {
+        shortName: 'ST',
+        value: 'CA'
+    }, {
+        name: 'localityName',
+        value: 'San Francisco'
+    }, {
+        name: 'organizationName',
+        value: 'JWT Security Analyzer Proxy'
+    }];
+    
+    cert.setSubject(attrs);
+    cert.setIssuer(caCert.subject.attributes);
+    cert.setExtensions([{
+        name: 'basicConstraints',
+        cA: false
+    }, {
+        name: 'keyUsage',
+        keyCertSign: false,
+        digitalSignature: true,
+        nonRepudiation: false,
+        keyEncipherment: true,
+        dataEncipherment: true
+    }, {
+        name: 'subjectAltName',
+        altNames: [{
+            type: 2,
+            value: hostname
+        }]
+    }]);
+    
+    cert.sign(caKey, forge.md.sha256.create());
+    
+    const certPem = forge.pki.certificateToPem(cert);
+    const keyPem = forge.pki.privateKeyToPem(keys.privateKey);
+    
+    const result = {
+        cert: certPem,
+        key: keyPem
+    };
+    
+    certCache.set(hostname, result);
+    return result;
+}
+
+ipcMain.handle('start-proxy', async (event, { port, httpsEnabled }) => {
+    if (proxyServer) {
+        return { success: false, error: 'Proxy is already running' };
+    }
+
+    try {
+        if (httpsEnabled && !caKey) {
+            const ca = generateRootCA();
+            caKey = ca.key;
+            caCert = ca.cert;
+        }
+        const proxy = httpProxy.createProxyServer({
+            target: 'http://localhost',
+            changeOrigin: true,
+            ws: true,
+            secure: false,
+            xfwd: true,
+            preserveHeaderKeyCase: true,
+            autoRewrite: true,
+            followRedirects: true
+        });
+        
+        proxy.on('error', (err, req, res) => {
+            if (res && res.writeHead && !res.headersSent) {
+                res.writeHead(502, { 'Content-Type': 'text/plain' });
+                res.end('Proxy Error: ' + err.message);
+            }
+        });
+
+        proxy.on('proxyReq', (proxyReq, req, res) => {
+            const requestBody = req.body || '';
+            
+            const requestTokens = extractJWTTokens(req, requestBody);
+            if (requestTokens.length > 0) {
+                requestTokens.forEach(tokenData => {
+                    if (mainWindow && !mainWindow.isDestroyed()) {
+                        mainWindow.webContents.send('jwt-token-captured', tokenData);
+                    }
+                });
+            }
+
+            if (requestBody) {
+                proxyReq.setHeader('Content-Length', Buffer.byteLength(requestBody));
+                proxyReq.write(requestBody);
+            }
+        });
+
+        proxy.on('proxyRes', (proxyRes, req, res) => {
+            let responseBody = '';
+            
+            const _writeHead = res.writeHead;
+            const _write = res.write;
+            const _end = res.end;
+            
+            res.writeHead = function() {
+                if (proxyRes.headers['content-encoding']) {
+                    delete proxyRes.headers['content-encoding'];
+                }
+                _writeHead.apply(res, arguments);
+            };
+            
+            res.write = function(chunk) {
+                if (chunk) {
+                    responseBody += chunk.toString();
+                }
+                return _write.apply(res, arguments);
+            };
+            
+            res.end = function(chunk) {
+                if (chunk) {
+                    responseBody += chunk.toString();
+                }
+                
+                const responseTokens = extractJWTTokensFromResponse(proxyRes, responseBody);
+                if (responseTokens.length > 0) {
+                    responseTokens.forEach(tokenData => {
+                        if (mainWindow && !mainWindow.isDestroyed()) {
+                            mainWindow.webContents.send('jwt-token-captured', tokenData);
+                        }
+                    });
+                }
+                
+                return _end.apply(res, arguments);
+            };
+        });
+        
+        proxyServer = http.createServer((req, res) => {
+            let body = '';
+            
+            req.on('data', chunk => {
+                body += chunk.toString();
+            });
+            
+            req.on('end', () => {
+                req.body = body;
+                
+                let targetUrl;
+                if (req.url.startsWith('http://') || req.url.startsWith('https://')) {
+                    targetUrl = req.url;
+                } else {
+                    const host = req.headers.host || 'localhost';
+                    const protocol = 'http';
+                    targetUrl = `${protocol}://${host}${req.url}`;
+                }
+                
+                const parsedUrl = new URL(targetUrl);
+                const targetBase = `${parsedUrl.protocol}//${parsedUrl.host}`;
+                
+                proxy.web(req, res, {
+                    target: targetBase,
+                    changeOrigin: true,
+                    selfHandleResponse: false
+                });
+            });
+            
+            req.on('error', (err) => {
+                if (!res.headersSent) {
+                    res.writeHead(400, { 'Content-Type': 'text/plain' });
+                    res.end('Bad Request');
+                }
+            });
+        });
+
+        if (httpsEnabled) {
+            proxyServer.on('connect', (req, clientSocket, head) => {
+                const [hostname, port] = req.url.split(':');
+                const targetPort = parseInt(port) || 443;
+                
+                clientSocket.write('HTTP/1.1 200 Connection Established\r\n' +
+                                 'Proxy-agent: JWT-Security-Analyzer\r\n' +
+                                 '\r\n');
+                
+                const serverCert = generateServerCertificate(hostname);
+                
+                const tlsOptions = {
+                    key: serverCert.key,
+                    cert: serverCert.cert,
+                    isServer: true
+                };
+                
+                const tlsSocket = new tls.TLSSocket(clientSocket, tlsOptions);
+                
+                tlsSocket.on('secure', () => {
+                    const targetOptions = {
+                        host: hostname,
+                        port: targetPort,
+                        rejectUnauthorized: false
+                    };
+                    
+                    const targetSocket = tls.connect(targetOptions, () => {
+                        let requestData = '';
+                        let responseData = '';
+                        
+                        tlsSocket.on('data', (data) => {
+                            const dataStr = data.toString();
+                            
+                            if (dataStr.includes('HTTP/')) {
+                                const lines = dataStr.split('\r\n');
+                                const method = lines[0].split(' ')[0];
+                                const path = lines[0].split(' ')[1];
+                                
+                                const headers = {};
+                                let headerEnd = false;
+                                let body = '';
+                                
+                                for (let i = 1; i < lines.length; i++) {
+                                    if (lines[i] === '') {
+                                        headerEnd = true;
+                                        body = lines.slice(i + 1).join('\r\n');
+                                        break;
+                                    }
+                                    const [key, value] = lines[i].split(': ');
+                                    if (key && value) {
+                                        headers[key.toLowerCase()] = value;
+                                    }
+                                }
+                                
+                                const mockReq = {
+                                    headers: headers,
+                                    method: method,
+                                    url: `https://${hostname}${path}`,
+                                    body: body
+                                };
+                                
+                                const tokens = extractJWTTokens(mockReq, body);
+                                if (tokens.length > 0) {
+                                    tokens.forEach(tokenData => {
+                                        if (mainWindow && !mainWindow.isDestroyed()) {
+                                            mainWindow.webContents.send('jwt-token-captured', tokenData);
+                                        }
+                                    });
+                                }
+                            }
+                            
+                            targetSocket.write(data);
+                        });
+                        
+                        targetSocket.on('data', (data) => {
+                            const dataStr = data.toString();
+                            
+                            if (dataStr.includes('HTTP/')) {
+                                const lines = dataStr.split('\r\n');
+                                const headers = {};
+                                let headerEnd = false;
+                                let body = '';
+                                
+                                for (let i = 1; i < lines.length; i++) {
+                                    if (lines[i] === '') {
+                                        headerEnd = true;
+                                        body = lines.slice(i + 1).join('\r\n');
+                                        break;
+                                    }
+                                    const [key, value] = lines[i].split(': ');
+                                    if (key && value) {
+                                        headers[key.toLowerCase()] = value;
+                                    }
+                                }
+                                
+                                const mockRes = {
+                                    headers: headers,
+                                    req: {
+                                        method: 'UNKNOWN',
+                                        path: '/'
+                                    }
+                                };
+                                
+                                const tokens = extractJWTTokensFromResponse(mockRes, body);
+                                if (tokens.length > 0) {
+                                    tokens.forEach(tokenData => {
+                                        if (mainWindow && !mainWindow.isDestroyed()) {
+                                            mainWindow.webContents.send('jwt-token-captured', tokenData);
+                                        }
+                                    });
+                                }
+                            }
+                            
+                            tlsSocket.write(data);
+                        });
+                        
+                        tlsSocket.on('end', () => targetSocket.end());
+                        targetSocket.on('end', () => tlsSocket.end());
+                        tlsSocket.on('error', () => targetSocket.destroy());
+                        targetSocket.on('error', () => tlsSocket.destroy());
+                    });
+                });
+                
+                tlsSocket.on('error', (err) => {
+                    clientSocket.destroy();
+                });
+            });
+        }
+
+        return new Promise((resolve, reject) => {
+            proxyServer.listen(port, '127.0.0.1', () => {
+                resolve({ success: true, port });
+            });
+            
+            proxyServer.on('error', (err) => {
+                proxyServer = null;
+                if (err.code === 'EADDRINUSE') {
+                    resolve({ success: false, error: `Port ${port} is already in use` });
+                } else {
+                    resolve({ success: false, error: err.message });
+                }
+            });
+        });
+        
+    } catch (error) {
+        proxyServer = null;
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('stop-proxy', async () => {
+    if (!proxyServer) {
+        return { success: false, error: 'No proxy server running' };
+    }
+
+    try {
+        return new Promise((resolve) => {
+            proxyServer.close(() => {
+                proxyServer = null;
+                resolve({ success: true });
+            });
+            
+            setTimeout(() => {
+                if (proxyServer) {
+                    proxyServer = null;
+                    resolve({ success: true });
+                }
+            }, 5000);
+        });
+    } catch (error) {
+        proxyServer = null;
+        return { success: false, error: error.message };
+    }
+});
+
+function extractJWTTokens(req, body) {
+    const tokens = [];
+    const jwtRegex = /eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/=]*/g;
+    
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const bearerMatch = authHeader.match(/Bearer\s+(eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/=]*)/);
+        if (bearerMatch) {
+            tokens.push({
+                token: bearerMatch[1],
+                source: 'Authorization Header',
+                url: `${req.method} ${req.url}`,
+                timestamp: Date.now()
+            });
+        }
+    }
+    
+    const cookieHeader = req.headers.cookie;
+    if (cookieHeader) {
+        const cookieMatches = cookieHeader.match(jwtRegex);
+        if (cookieMatches) {
+            cookieMatches.forEach(token => {
+                tokens.push({
+                    token,
+                    source: 'Cookie',
+                    url: `${req.method} ${req.url}`,
+                    timestamp: Date.now()
+                });
+            });
+        }
+    }
+    
+    if (body) {
+        const bodyMatches = body.match(jwtRegex);
+        if (bodyMatches) {
+            bodyMatches.forEach(token => {
+                tokens.push({
+                    token,
+                    source: 'Request Body',
+                    url: `${req.method} ${req.url}`,
+                    timestamp: Date.now()
+                });
+            });
+        }
+    }
+    
+    Object.keys(req.headers).forEach(headerName => {
+        if (headerName.toLowerCase().includes('token') || headerName.toLowerCase().includes('jwt')) {
+            const headerValue = req.headers[headerName];
+            const headerMatches = headerValue.match(jwtRegex);
+            if (headerMatches) {
+                headerMatches.forEach(token => {
+                    tokens.push({
+                        token,
+                        source: `Header: ${headerName}`,
+                        url: `${req.method} ${req.url}`,
+                        timestamp: Date.now()
+                    });
+                });
+            }
+        }
+    });
+    
+    return tokens;
+}
+
+function extractJWTTokensFromResponse(res, body) {
+    const tokens = [];
+    const jwtRegex = /eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/=]*/g;
+    
+    Object.keys(res.headers).forEach(headerName => {
+        const headerValue = res.headers[headerName];
+        if (typeof headerValue === 'string') {
+            const headerMatches = headerValue.match(jwtRegex);
+            if (headerMatches) {
+                headerMatches.forEach(token => {
+                    tokens.push({
+                        token,
+                        source: `Response Header: ${headerName}`,
+                        url: res.req ? `${res.req.method} ${res.req.path}` : 'Unknown',
+                        timestamp: Date.now()
+                    });
+                });
+            }
+        }
+    });
+    
+    if (res.headers['set-cookie']) {
+        const cookies = Array.isArray(res.headers['set-cookie']) ? res.headers['set-cookie'] : [res.headers['set-cookie']];
+        cookies.forEach(cookie => {
+            const cookieMatches = cookie.match(jwtRegex);
+            if (cookieMatches) {
+                cookieMatches.forEach(token => {
+                    tokens.push({
+                        token,
+                        source: 'Set-Cookie Header',
+                        url: res.req ? `${res.req.method} ${res.req.path}` : 'Unknown',
+                        timestamp: Date.now()
+                    });
+                });
+            }
+        });
+    }
+    
+    if (body) {
+        const bodyMatches = body.match(jwtRegex);
+        if (bodyMatches) {
+            bodyMatches.forEach(token => {
+                tokens.push({
+                    token,
+                    source: 'Response Body',
+                    url: res.req ? `${res.req.method} ${res.req.path}` : 'Unknown',
+                    timestamp: Date.now()
+                });
+            });
+        }
+    }
+    
+    return tokens;
+}
+
+function streamify(text) {
+    const stream = new Readable();
+    stream.push(text);
+    stream.push(null);
+    return stream;
+}
+
+ipcMain.handle('get-proxy-status', async () => {
+    return {
+        success: true,
+        running: proxyServer !== null,
+        port: proxyServer ? proxyServer.address()?.port : null
+    };
+});
+
+ipcMain.handle('export-ca-certificate', async () => {
+    try {
+        if (!caCert) {
+            const ca = generateRootCA();
+            caKey = ca.key;
+            caCert = ca.cert;
+        }
+        
+        const certPem = forge.pki.certificateToPem(caCert);
+        
+        const { filePath, canceled } = await dialog.showSaveDialog(mainWindow, {
+            title: 'Save CA Certificate',
+            defaultPath: 'jwt-analyzer-ca.crt',
+            filters: [
+                { name: 'Certificate Files', extensions: ['crt', 'pem'] },
+                { name: 'All Files', extensions: ['*'] }
+            ]
+        });
+        
+        if (canceled) {
+            return { success: false, canceled: true };
+        }
+        
+        await fs.writeFile(filePath, certPem, 'utf8');
+        return { success: true, path: filePath };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
+process.on('uncaughtException', (error) => {
     if (mainWindow && !mainWindow.isDestroyed()) {
         dialog.showErrorBox('Unexpected Error',
             `An unexpected error occurred: ${error.message}\n\nThe application will continue running, but you may want to restart it.`
@@ -613,10 +1171,8 @@ process.on('uncaughtException', (error) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// App lifecycle
 app.enableSandbox = false;
 
 app.whenReady().then(() => {
@@ -641,6 +1197,11 @@ app.on('before-quit', (event) => {
     if (updateDownloaded) {
         event.preventDefault();
         autoUpdater.quitAndInstall();
+        return;
+    }
+    
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.removeAllListeners('closed');
     }
 });
 
@@ -674,12 +1235,6 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
     }
 });
 
-app.on('before-quit', (event) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.removeAllListeners('closed');
-    }
-});
-
 app.setAboutPanelOptions({
     applicationName: 'JWT Security Analyzer',
     applicationVersion: app.getVersion(),
@@ -688,7 +1243,6 @@ app.setAboutPanelOptions({
     website: 'https://www.bavamont.com'
 });
 
-// Single instance lock
 if (process.env.NODE_ENV === 'production') {
     const gotTheLock = app.requestSingleInstanceLock();
 
