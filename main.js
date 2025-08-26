@@ -13,6 +13,7 @@ const url = require('url');
 const httpProxy = require('http-proxy');
 const { Readable } = require('stream');
 const forge = require('node-forge');
+const ValidationUtils = require('./validation');
 
 let mainWindow;
 let updateDownloaded = false;
@@ -20,7 +21,13 @@ let proxyServer = null;
 let caKey = null;
 let caCert = null;
 const certCache = new Map();
+const CERT_CACHE_MAX_SIZE = 100;
+const CERT_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
+/**
+ * Creates the main application window with security configurations
+ * @function
+ */
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1400,
@@ -30,7 +37,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
-            enableRemoteModule: true
+            enableRemoteModule: false
         },
         icon: getIconPath(),
         show: false,
@@ -55,6 +62,11 @@ function createWindow() {
     });
 
     mainWindow.on('closed', () => {
+        if (proxyServer) {
+            proxyServer.close();
+            proxyServer = null;
+        }
+        certCache.clear();
         mainWindow = null;
     });
 
@@ -380,7 +392,7 @@ ipcMain.handle('save-settings', async (event, settings, filePath = null) => {
         }
 
         const settingsData = {
-            version: '1.0.0',
+            version: '1.2.0',
             timestamp: new Date().toISOString(),
             application: 'jwt-security-analyzer',
             settings: settings
@@ -448,6 +460,9 @@ ipcMain.handle('check-path-exists', async (event, filePath) => {
 
 ipcMain.handle('open-external', async (event, url) => {
     try {
+        if (!ValidationUtils.isValidURL(url)) {
+            return { success: false, error: 'Invalid URL' };
+        }
         await shell.openExternal(url);
         return { success: true };
     } catch (error) {
@@ -581,6 +596,11 @@ ipcMain.handle('show-info', async (event, title, message) => {
     return { success: true };
 });
 
+/**
+ * Generates a root Certificate Authority (CA) for HTTPS proxy
+ * @function
+ * @returns {Object} Object containing CA key and certificate
+ */
 function generateRootCA() {
     const keys = forge.pki.rsa.generateKeyPair(2048);
     const cert = forge.pki.createCertificate();
@@ -588,12 +608,11 @@ function generateRootCA() {
     cert.publicKey = keys.publicKey;
     cert.serialNumber = '01';
     cert.validity.notBefore = new Date();
-    cert.validity.notAfter = new Date();
-    cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 10);
+    cert.validity.notAfter = new Date('2099-12-31T23:59:59Z');
     
     const attrs = [{
         name: 'commonName',
-        value: 'JWT Security Analyzer CA'
+        value: `JWT-Test-CA-${crypto.randomBytes(4).toString('hex')}`
     }, {
         name: 'countryName',
         value: 'US'
@@ -633,9 +652,20 @@ function generateRootCA() {
     };
 }
 
+/**
+ * Generates a server certificate for the specified hostname
+ * @function
+ * @param {string} hostname - The hostname to generate certificate for
+ * @returns {Object} Object containing certificate and private key
+ */
 function generateServerCertificate(hostname) {
     if (certCache.has(hostname)) {
-        return certCache.get(hostname);
+        const cached = certCache.get(hostname);
+        if (Date.now() - cached.timestamp < CERT_CACHE_TTL) {
+            return { cert: cached.cert, key: cached.key };
+        } else {
+            certCache.delete(hostname);
+        }
     }
     
     const keys = forge.pki.rsa.generateKeyPair(2048);
@@ -644,8 +674,7 @@ function generateServerCertificate(hostname) {
     cert.publicKey = keys.publicKey;
     cert.serialNumber = Date.now().toString();
     cert.validity.notBefore = new Date();
-    cert.validity.notAfter = new Date();
-    cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 1);
+    cert.validity.notAfter = new Date('2099-12-31T23:59:59Z');
     
     const attrs = [{
         name: 'commonName',
@@ -694,13 +723,28 @@ function generateServerCertificate(hostname) {
         key: keyPem
     };
     
-    certCache.set(hostname, result);
+    const cacheEntry = {
+        cert: result.cert,
+        key: result.key,
+        timestamp: Date.now()
+    };
+
+    if (certCache.size >= CERT_CACHE_MAX_SIZE) {
+        const oldestKey = certCache.keys().next().value;
+        certCache.delete(oldestKey);
+    }
+
+    certCache.set(hostname, cacheEntry);
     return result;
 }
 
 ipcMain.handle('start-proxy', async (event, { port, httpsEnabled }) => {
     if (proxyServer) {
         return { success: false, error: 'Proxy is already running' };
+    }
+
+    if (!ValidationUtils.isValidPort(port)) {
+        return { success: false, error: 'Invalid port number' };
     }
 
     try {
@@ -1173,7 +1217,6 @@ process.on('uncaughtException', (error) => {
 process.on('unhandledRejection', (reason, promise) => {
 });
 
-app.enableSandbox = false;
 
 app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
@@ -1200,6 +1243,12 @@ app.on('before-quit', (event) => {
         return;
     }
     
+    if (proxyServer) {
+        proxyServer.close();
+        proxyServer = null;
+    }
+    certCache.clear();
+
     if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.removeAllListeners('closed');
     }

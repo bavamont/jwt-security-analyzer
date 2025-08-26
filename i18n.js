@@ -1,3 +1,8 @@
+/**
+ * Internationalization (i18n) system for multi-language support
+ * Provides translation functionality for English and German
+ * @namespace
+ */
 const i18n = {
     currentLanguage: 'en',
     translations: {
@@ -166,6 +171,12 @@ const i18n = {
             'attacks.jwks_poisoning_desc': 'Poison JWKS cache with malicious keys',
             'attacks.quantum_prep': 'Quantum-Prep Attack',
             'attacks.quantum_prep_desc': 'Test quantum-vulnerable algorithms and key sizes',
+            'attacks.hardcoded_secret_cve_2025_20188': 'CVE-2025-20188 Hard-coded Secrets',
+            'attacks.hardcoded_secret_cve_2025_20188_desc': 'Exploit hard-coded JWT secrets (CVSS 10.0)',
+            'attacks.issuer_bypass_cve_2025_30144': 'CVE-2025-30144 Issuer Bypass',
+            'attacks.issuer_bypass_cve_2025_30144_desc': 'Fast-jwt issuer validation bypass via arrays',
+            'attacks.post_quantum_assessment': 'Post-Quantum Assessment',
+            'attacks.post_quantum_assessment_desc': 'NIST 2025 post-quantum vulnerability analysis',
 
             'attacks.none_title': 'Algorithm None Attack Explained',
             'attacks.confusion_title': 'Algorithm Confusion Attack Explained',
@@ -317,7 +328,7 @@ const i18n = {
             'help.feature1': 'Comprehensive JWT token decoding and analysis',
             'help.feature2': 'Custom token generation with multiple algorithms',
             'help.feature3': 'Advanced security vulnerability detection',
-            'help.feature4': '16+ attack vector generators for penetration testing',
+            'help.feature4': '20+ attack vector generators including 2024-2025 CVE implementations',
             'help.feature5': 'Dictionary-based secret brute forcing',
             'help.feature6': 'Secure HMAC and RSA key generation',
             'help.feature7': 'Token signature validation and verification',
@@ -368,6 +379,16 @@ const i18n = {
             'help.jwks_poisoning_desc': 'Poisons JSON Web Key Set caches with malicious keys to compromise all applications using the poisoned cache.',
             'help.quantum_prep_help': 'Quantum-Prep Attack:',
             'help.quantum_prep_desc': 'Evaluates JWT resistance to future quantum computing attacks and recommends post-quantum cryptography migration.',
+            'help.cve_2024_54150_help': 'CVE-2024-54150 Psychic Signature:',
+            'help.cve_2024_54150_desc': 'Algorithm confusion vulnerability allowing ECDSA to HMAC attacks. Exploits systems that conflate verification processes between asymmetric and symmetric keys.',
+            'help.cve_2024_34273_help': 'CVE-2024-34273 Prototype Pollution:',
+            'help.cve_2024_34273_desc': 'Prototype pollution vulnerability in nJwt library. Allows manipulation of JWT header and payload object prototypes through malicious __proto__ properties.',
+            'help.cve_2025_20188_help': 'CVE-2025-20188 Hard-coded Secrets:',
+            'help.cve_2025_20188_desc': 'Critical vulnerability (CVSS 10.0) involving hard-coded JWT secrets. Enables root privilege escalation and arbitrary command execution through crafted HTTPS requests.',
+            'help.cve_2025_30144_help': 'CVE-2025-30144 Issuer Validation Bypass:',
+            'help.cve_2025_30144_desc': 'Fast-jwt library flaw allowing array-based issuer claims. Attackers can include both legitimate and malicious issuers in token validation bypass attacks.',
+            'help.post_quantum_prep_help': 'Post-Quantum Cryptography Assessment:',
+            'help.post_quantum_prep_desc': 'Evaluates JWT implementations for quantum computing vulnerabilities. Assesses current algorithms against NIST post-quantum standards and migration readiness for 2030 deprecation timeline.',
             'help.tools_guide': 'Tools Guide',
             'help.decoder_help': 'JWT Decoder:',
             'help.decoder_desc': 'Paste any JWT token to see its header, payload, and signature in human-readable format. Analyzes claims and provides token structure insights.',
@@ -382,7 +403,7 @@ const i18n = {
             'help.validator_help': 'Token Validator:',
             'help.validator_desc': 'Verify JWT token signatures and validate claims against provided secrets or public keys.',
             'help.attacks_help': 'Attack Vectors:',
-            'help.attacks_desc': 'Generate 16+ different attack payloads to test JWT vulnerabilities including algorithm confusion, JWK injection, and parameter pollution.',
+            'help.attacks_desc': 'Generate 20+ different attack payloads to test JWT vulnerabilities including algorithm confusion, JWK injection, parameter pollution, 2024-2025 CVEs (CVE-2025-20188, CVE-2025-30144, CVE-2024-54150, CVE-2024-34273), and post-quantum cryptography assessments.',
             'help.proxy_help': 'Network Proxy:',
             'help.proxy_desc': 'Intercept HTTP/HTTPS traffic to capture JWT tokens from live network requests. Supports SSL/TLS decryption with CA certificate installation.',
             'help.replay_help': 'Replay Attack Simulator:',
@@ -398,7 +419,7 @@ const i18n = {
             'help.built_with': 'www.bavamont.com',
             'help.powered_by': 'Built for developers',
             'help.auto_updates': 'Updates with new attack vectors and features',
-            'help.version': 'Version 1.1.0 - Released August 2, 2025',
+            'help.version': 'Version 1.2.0 - Released August 25, 2025',
             'help.security_disclaimer_title': 'Security Disclaimer:',
             'help.security_disclaimer': 'This tool is designed for legitimate security testing and educational purposes only. Always ensure you have proper authorization before testing any system. Users are responsible for complying with applicable laws and regulations.',
             'help.keyboard_shortcuts': 'Keyboard Shortcuts',
@@ -863,6 +884,12 @@ const i18n = {
             'attacks.jwks_poisoning_desc': 'JWKS-Cache mit bösartigen Schlüsseln vergiften',
             'attacks.quantum_prep': 'Quantum-Prep-Angriff',
             'attacks.quantum_prep_desc': 'Quantum-anfällige Algorithmen und Schlüsselgrößen testen',
+            'attacks.hardcoded_secret_cve_2025_20188': 'CVE-2025-20188 Hartcodierte Geheimnisse',
+            'attacks.hardcoded_secret_cve_2025_20188_desc': 'Nutze hartcodierte JWT-Geheimnisse aus (CVSS 10.0)',
+            'attacks.issuer_bypass_cve_2025_30144': 'CVE-2025-30144 Issuer-Bypass',
+            'attacks.issuer_bypass_cve_2025_30144_desc': 'Fast-jwt Issuer-Validierungs-Bypass über Arrays',
+            'attacks.post_quantum_assessment': 'Post-Quantum-Bewertung',
+            'attacks.post_quantum_assessment_desc': 'NIST 2025 Post-Quantum-Schwachstellenanalyse',
 
             'attacks.none_title': 'Algorithmus-None-Angriff Erklärt',
             'attacks.confusion_title': 'Algorithmus-Verwirrungsangriff Erklärt',
@@ -1014,7 +1041,7 @@ const i18n = {
             'help.feature1': 'Umfassende JWT-Token-Dekodierung und -Analyse',
             'help.feature2': 'Benutzerdefinierte Token-Generierung mit mehreren Algorithmen',
             'help.feature3': 'Erweiterte Sicherheitsschwachstellenerkennung',
-            'help.feature4': '16+ Angriffsvektor-Generatoren für Penetrationstests',
+            'help.feature4': '20+ Angriffsvektor-Generatoren einschließlich 2024-2025 CVE-Implementierungen',
             'help.feature5': 'Wörterbuch-basiertes Geheimnis-Brute-Forcing',
             'help.feature6': 'Sichere HMAC- und RSA-Schlüsselgenerierung',
             'help.feature7': 'Token-Signaturvalidierung und -verifizierung',
@@ -1065,6 +1092,16 @@ const i18n = {
             'help.jwks_poisoning_desc': 'Vergiftet JSON Web Key Set-Caches mit bösartigen Schlüsseln, um alle Anwendungen zu kompromittieren, die den vergifteten Cache verwenden.',
             'help.quantum_prep_help': 'Quantum-Prep-Angriff:',
             'help.quantum_prep_desc': 'Bewertet JWT-Resistenz gegen zukünftige Quantencomputing-Angriffe und empfiehlt Post-Quantum-Kryptographie-Migration.',
+            'help.cve_2024_54150_help': 'CVE-2024-54150 Psychic Signature:',
+            'help.cve_2024_54150_desc': 'Algorithmus-Verwirrungsschwachstelle, die ECDSA-zu-HMAC-Angriffe ermöglicht. Nutzt Systeme aus, die Verifizierungsprozesse zwischen asymmetrischen und symmetrischen Schlüsseln verwechseln.',
+            'help.cve_2024_34273_help': 'CVE-2024-34273 Prototype Pollution:',
+            'help.cve_2024_34273_desc': 'Prototype-Pollution-Schwachstelle in der nJwt-Bibliothek. Ermöglicht Manipulation von JWT-Header- und Payload-Objektprototypen durch bösartige __proto__-Eigenschaften.',
+            'help.cve_2025_20188_help': 'CVE-2025-20188 Hartcodierte Geheimnisse:',
+            'help.cve_2025_20188_desc': 'Kritische Schwachstelle (CVSS 10.0) mit hartcodierten JWT-Geheimnissen. Ermöglicht Root-Privilegieneskalation und beliebige Befehlsausführung durch speziell gestaltete HTTPS-Anfragen.',
+            'help.cve_2025_30144_help': 'CVE-2025-30144 Issuer-Validierungs-Bypass:',
+            'help.cve_2025_30144_desc': 'Fast-jwt-Bibliotheksfehler, der array-basierte Issuer-Claims erlaubt. Angreifer können sowohl legitime als auch bösartige Issuer in Token-Validierungs-Bypass-Angriffen einschließen.',
+            'help.post_quantum_prep_help': 'Post-Quantum-Kryptographie-Bewertung:',
+            'help.post_quantum_prep_desc': 'Bewertet JWT-Implementierungen für Quantencomputing-Schwachstellen. Bewertet aktuelle Algorithmen gegen NIST-Post-Quantum-Standards und Migrationsbereitschaft für 2030-Ablauftermin.',
             'help.tools_guide': 'Tools-Leitfaden',
             'help.decoder_help': 'JWT Decoder:',
             'help.decoder_desc': 'Fügen Sie einen beliebigen JWT-Token ein, um seinen Header, Payload und Signatur in menschenlesbarem Format zu sehen. Analysiert Claims und bietet Token-Struktur-Einblicke.',
@@ -1079,7 +1116,7 @@ const i18n = {
             'help.validator_help': 'Token-Validator:',
             'help.validator_desc': 'Verifizieren Sie JWT-Token-Signaturen und validieren Sie Claims gegen bereitgestellte Geheimnisse oder öffentliche Schlüssel.',
             'help.attacks_help': 'Angriffsvektoren:',
-            'help.attacks_desc': 'Generieren Sie über 16 verschiedene Angriffs-Payloads zum Testen von JWT-Schwachstellen einschließlich Algorithmus-Verwirrung, JWK-Injektion und Parameter-Pollution.',
+            'help.attacks_desc': 'Generieren Sie über 20 verschiedene Angriffs-Payloads zum Testen von JWT-Schwachstellen einschließlich Algorithmus-Verwirrung, JWK-Injektion, Parameter-Pollution, 2024-2025 CVEs (CVE-2025-20188, CVE-2025-30144, CVE-2024-54150, CVE-2024-34273) und Post-Quantum-Kryptographie-Bewertungen.',
             'help.proxy_help': 'Netzwerk-Proxy:',
             'help.proxy_desc': 'Fangen Sie HTTP/HTTPS-Verkehr ab, um JWT-Token aus Live-Netzwerkanfragen zu erfassen. Unterstützt SSL/TLS-Entschlüsselung mit CA-Zertifikatinstallation.',
             'help.replay_help': 'Replay-Angriff-Simulator:',
@@ -1095,7 +1132,7 @@ const i18n = {
             'help.built_with': 'www.bavamont.com',
             'help.powered_by': 'Entwickelt für Entwickler',
             'help.auto_updates': 'Updates mit neuen Angriffsvektoren und Funktionen',
-            'help.version': 'Version 1.1.0 - Veröffentlicht am 2. August 2025',
+            'help.version': 'Version 1.2.0 - Veröffentlicht am 25. August 2025',
             'help.security_disclaimer_title': 'Haftungsausschluss:',
             'help.security_disclaimer': 'Dieses Tool ist nur für legitime Sicherheitstests und Bildungszwecke konzipiert. Stellen Sie immer sicher, dass Sie über die entsprechende Berechtigung verfügen, bevor Sie ein System testen. Benutzer sind dafür verantwortlich, geltende Gesetze und Vorschriften einzuhalten.',
             'help.keyboard_shortcuts': 'Tastaturkürzel',
@@ -1397,12 +1434,20 @@ const i18n = {
         }
     },
 
+    /**
+     * Initializes the i18n system
+     * @method
+     */
     init() {
         this.detectLanguage();
         this.setupLanguageSelector();
         this.translatePage();
     },
 
+    /**
+     * Detects and sets the appropriate language based on saved preference or system language
+     * @method
+     */
     detectLanguage() {
         const savedLanguage = localStorage.getItem('jwtAnalyzerLanguage');
         if (savedLanguage && this.translations[savedLanguage]) {
@@ -1415,6 +1460,10 @@ const i18n = {
         }
     },
 
+    /**
+     * Sets up the language selector dropdown event listener
+     * @method
+     */
     setupLanguageSelector() {
         const selector = document.getElementById('language-selector');
         if (selector) {
@@ -1425,6 +1474,11 @@ const i18n = {
         }
     },
 
+    /**
+     * Sets the current language and saves preference
+     * @method
+     * @param {string} language - Language code to set (e.g., 'en', 'de')
+     */
     setLanguage(language) {
         if (this.translations[language]) {
             this.currentLanguage = language;
@@ -1433,6 +1487,13 @@ const i18n = {
         }
     },
 
+    /**
+     * Translates a key to the current language with optional parameter substitution
+     * @method
+     * @param {string} key - Translation key
+     * @param {Object} [params={}] - Parameters for string substitution
+     * @returns {string} Translated string
+     */
     t(key, params = {}) {
         const translation = this.translations[this.currentLanguage]?.[key] ||
                           this.translations['en']?.[key] ||
@@ -1446,6 +1507,10 @@ const i18n = {
         return result;
     },
 
+    /**
+     * Translates all elements on the page with i18n attributes
+     * @method
+     */
     translatePage() {
         document.querySelectorAll('[data-i18n]').forEach(element => {
             const key = element.getAttribute('data-i18n');

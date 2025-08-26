@@ -12,9 +12,9 @@ A comprehensive desktop application for JWT token analysis, security testing, an
 
 ### Security Analysis
 - **Comprehensive Scanner** - Automated vulnerability detection with security scoring
-- **16+ Attack Vectors** - Generate attack payloads for common JWT vulnerabilities
+- **20+ Attack Vectors** - Generate attack payloads for JWT vulnerabilities including 2024-2025 CVEs
 - **Brute Force Testing** - Dictionary-based attacks against weak HMAC secrets
-- **Modern Vulnerability Detection** - Including JWK injection, algorithm confusion, and more
+- **Modern Vulnerability Detection** - Including JWK injection, algorithm confusion, and latest CVEs
 
 ### Network & Testing Tools
 - **Network Proxy** - Intercept HTTP/HTTPS traffic to capture JWT tokens from live requests
@@ -74,7 +74,11 @@ A comprehensive desktop application for JWT token analysis, security testing, an
 ### Specialized Attacks
 - **Token Replay** - Remove time-based claims for token reuse
 - **Timing Attack** - Exploit timing differences in signature verification
-- **Quantum-Prep Analysis** - Assess quantum computing vulnerability
+- **CVE-2024-54150** - Psychic signature attack for ECDSA algorithms
+- **CVE-2024-34273** - Prototype pollution in nJwt library
+- **CVE-2025-20188** - Hard-coded JWT secret exploitation (CVSS 10.0)
+- **CVE-2025-30144** - Issuer claim validation bypass in fast-jwt
+- **Post-Quantum Prep** - Assess quantum computing vulnerability and migration readiness
 
 ## Network Proxy Features
 
@@ -173,6 +177,22 @@ A comprehensive desktop application for JWT token analysis, security testing, an
 - **Supported Platforms** - Windows 10+, macOS 10.14+, Linux (Ubuntu 18.04+)
 
 ## Update History
+
+**26/08/2025** - 1.2.0 - Enhanced Attack Vectors and CVE Integration
+- Added CVE-2024-54150 psychic signature attack implementation
+- Added CVE-2024-34273 prototype pollution attack vector
+- Added 2025 CVE implementations: CVE-2025-20188, CVE-2025-30144, CVE-2025-4692
+- Implemented complete attack generation functions for all vectors
+- Enhanced X5U certificate exploit capabilities
+- Improved nested JWT attack detection
+- Added comprehensive timing attack patterns
+- Enhanced JWKS poisoning attack accuracy
+- Expanded parameter pollution attack coverage
+- Added JWT sidejacking attack implementation
+- Updated weak secret brute force attack patterns
+- Added post-quantum cryptography vulnerability assessment
+- Verified all implementations against 2025 security standards (RFC 8725, OWASP latest)
+- Updated attack vector count from 16+ to 20+
 
 **02/08/2025** - 1.1.0 - Added Network Proxy with HTTP/HTTPS interception
 - Implemented SSL/TLS decryption with CA certificate generation
