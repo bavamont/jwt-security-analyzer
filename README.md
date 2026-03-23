@@ -1,6 +1,9 @@
-# JWT Security Analyzer
+# JWT Security Analyzer — Open Internet Authentication Security Toolkit
 
-A comprehensive desktop application for JWT token analysis, security testing, and penetration testing. Built with Electron for cross-platform compatibility and designed for security professionals and developers.
+A comprehensive open-source desktop application for JWT token analysis, security testing, and penetration testing. 22 attack vectors, 50+ vulnerability checks, built-in HTTP/HTTPS proxy, and brute force testing. Built with Electron for cross-platform compatibility and designed for security professionals and developers.
+
+Licensed under the [EUPL-1.2](LICENSE).
+
 
 ## Features
 
@@ -12,7 +15,7 @@ A comprehensive desktop application for JWT token analysis, security testing, an
 
 ### Security Analysis
 - **Comprehensive Scanner** - Automated vulnerability detection with security scoring
-- **20+ Attack Vectors** - Generate attack payloads for JWT vulnerabilities including 2024-2025 CVEs
+- **22 Attack Vectors** - Generate attack payloads for JWT vulnerabilities including 2024-2025 CVEs
 - **Brute Force Testing** - Dictionary-based attacks against weak HMAC secrets
 - **Modern Vulnerability Detection** - Including JWK injection, algorithm confusion, and latest CVEs
 
@@ -233,9 +236,13 @@ A comprehensive desktop application for JWT token analysis, security testing, an
 - **Token Manipulation** - Modify and test token variations
 - **Automated Testing** - Bulk security analysis of captured tokens
 
+## License
+
+Licensed under the [European Union Public Licence V. 1.2 (EUPL-1.2)](LICENSE).
+
 ## Credits
 
-Developed by **www.bavamont.com**
+Developed by [**Bavamont**](https://www.bavamont.com) — Füssen, Bavaria, Germany
 
 **Built for**: Security professionals, penetration testers, and developers
 
